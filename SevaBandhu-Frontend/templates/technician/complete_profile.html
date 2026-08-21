@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Your Profile</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+        }
+
+        body{
+            font-family:'Inter',sans-serif;
+            background:#f8fafc;
+            padding:24px;
+            min-height:100vh;
+        }
+
+        .container{
+
+            max-width:720px;
+
+            margin:30px auto;
+
+            background:white;
+
+            padding:40px;
+
+            border-radius:28px;
+
+            border:1px solid #e5e7eb;
+
+            box-shadow:0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        h1{
+
+            color:#111827;
+
+            margin-bottom:12px;
+
+            font-size:34px;
+            font-weight:800;
+
+            letter-spacing:-1px;
+        }
+
+        .subtitle{
+
+            color:#6b7280;
+
+            font-size:15px;
+
+            line-height:1.7;
+
+            margin-bottom:28px;
+        }
+
+        .form-group{
+            margin-bottom:24px;
+        }
+
+        label{
+
+            display:block;
+
+            margin-bottom:8px;
+
+            font-weight:600;
+
+            color:#374151;
+
+            font-size:14px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea{
+
+            width:100%;
+
+            padding:14px 16px;
+
+            border:1px solid #d1d5db;
+
+            border-radius:16px;
+
+            font-size:14px;
+
+            font-family:'Inter',sans-serif;
+
+            background:white;
+
+            transition:0.25s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus,
+        textarea:focus{
+
+            outline:none;
+
+            border-color:#2563eb;
+
+            box-shadow:0 0 0 4px rgba(37,99,235,0.1);
+        }
+
+        textarea{
+            resize:vertical;
+            min-height:110px;
+            line-height:1.7;
+        }
+
+        .info-box{
+
+            background:#eff6ff;
+
+            padding:16px 18px;
+
+            border-radius:16px;
+
+            margin-bottom:26px;
+
+            font-size:14px;
+
+            color:#1e40af;
+
+            border:1px solid #bfdbfe;
+
+            line-height:1.7;
+        }
+
+        .info-box strong{
+            color:#1d4ed8;
+        }
+
+        .tip-box{
+
+            margin-top:10px;
+
+            background:#f8fafc;
+
+            border:1px solid #e5e7eb;
+
+            padding:14px;
+
+            border-radius:14px;
+
+            font-size:13px;
+
+            color:#6b7280;
+
+            line-height:1.6;
+        }
+
+        .tip-box strong{
+            color:#111827;
+        }
+
+        .btn-group{
+
+            display:flex;
+
+            gap:14px;
+
+            margin-top:34px;
+
+            flex-wrap:wrap;
+        }
+
+        button{
+
+            flex:1;
+
+            padding:14px 18px;
+
+            border:none;
+
+            border-radius:16px;
+
+            font-weight:600;
+
+            cursor:pointer;
+
+            font-size:14px;
+
+            transition:0.25s ease;
+
+            font-family:'Inter',sans-serif;
+        }
+
+        .btn-submit{
+
+            background:#2563eb;
+
+            color:white;
+
+            box-shadow:0 6px 18px rgba(37,99,235,0.18);
+        }
+
+        .btn-submit:hover{
+
+            background:#1d4ed8;
+
+            transform:translateY(-2px);
+        }
+
+        .btn-cancel{
+
+            background:#f3f4f6;
+
+            color:#111827;
+
+            border:1px solid #e5e7eb;
+        }
+
+        .btn-cancel:hover{
+
+            background:#e5e7eb;
+        }
+
+        .error{
+
+            background:#fef2f2;
+
+            border:1px solid #fecaca;
+
+            color:#b91c1c;
+
+            padding:16px;
+
+            border-radius:16px;
+
+            margin-bottom:24px;
+
+            font-size:14px;
+
+            line-height:1.6;
+        }
+
+        .field-readonly{
+
+            background:#f9fafb;
+
+            color:#6b7280;
+        }
+
+        .field-readonly:focus{
+
+            background:#f9fafb;
+
+            border-color:#d1d5db !important;
+
+            box-shadow:none !important;
+
+            cursor:not-allowed;
+        }
+
+        @media(max-width:600px){
+
+            body{
+                padding:18px;
+            }
+
+            .container{
+                padding:28px 22px;
+                border-radius:22px;
+            }
+
+            h1{
+                font-size:28px;
+            }
+
+            .btn-group{
+                flex-direction:column;
+            }
+
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Complete Your Profile</h1>
+
+    <p class="subtitle">
+        Fill in your professional information to start receiving
+        service requests and technician assignments.
+    </p>
+
+    {% if error %}
+
+    <div class="error">
+        {{ error }}
+    </div>
+
+    {% endif %}
+
+    <div class="info-box">
+        <strong>Step 1:</strong> Fill in your professional details below.
+        Name and contact are already filled from your registration.
+    </div>
+
+    <form method="post">
+
+        {% csrf_token %}
+
+        <!-- Name (Read-only) -->
+        <div class="form-group">
+
+            <label for="name">
+                Name
+            </label>
+
+            <input
+                type="text"
+                id="name"
+                name="name"
+                value="{{ technician.username }}"
+                readonly
+                class="field-readonly">
+
+        </div>
+
+        <!-- Contact (Read-only) -->
+        <div class="form-group">
+
+            <label for="contact">
+                Contact
+            </label>
+
+            <input
+                type="text"
+                id="contact"
+                name="contact"
+                value="{{ technician.contact }}"
+                readonly
+                class="field-readonly">
+
+        </div>
+
+        <!-- Service Category -->
+        <div class="form-group">
+
+            <label for="service_category">
+                Service Category
+            </label>
+
+            <select id="service_category" name="service_category" required>
+
+                <option value="">
+                    -- Select a category --
+                </option>
+
+                {% for service in services %}
+
+                    <option value="{{ service.name }}"
+                        {% if technician.service_category == service.name %}selected{% endif %}>
+
+                        {{ service.name }}
+
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+        </div>
+
+        <!-- Years of Experience -->
+        <div class="form-group">
+
+            <label for="years_of_experience">
+                Years of Experience
+            </label>
+
+            <input
+                type="number"
+                id="years_of_experience"
+                name="years_of_experience"
+                min="0"
+                max="50"
+                placeholder="Enter your years of experience"
+                value="{% if technician.years_of_experience %}{{ technician.years_of_experience }}{% endif %}"
+                required>
+
+        </div>
+
+        <!-- Working Locations -->
+        <div class="form-group">
+
+            <label for="working_locations">
+                Working Cities
+            </label>
+
+            <textarea
+                id="working_locations"
+                name="working_locations"
+                placeholder="Enter cities where you can work (e.g., Delhi, Gurgaon, Noida)"
+                required>{% if technician.working_locations %}{{ technician.working_locations }}{% endif %}</textarea>
+
+            <div class="tip-box">
+                <strong>Tip:</strong> Enter city names separated by commas (,)
+            </div>
+
+        </div>
+
+        <!-- Buttons -->
+        <div class="btn-group">
+
+            <button type="submit" class="btn-submit">
+                Save Profile
+            </button>
+
+            <a href="{% url 'technician_dashboard' %}" style="text-decoration:none;flex:1;">
+
+                <button type="button" class="btn-cancel" style="width:100%;">
+                    Cancel
+                </button>
+
+            </a>
+
+        </div>
+
+    </form>
+
+</div>
+
+</body>
+</html>

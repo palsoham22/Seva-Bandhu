@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+        }
+
+        body{
+            font-family:'Inter',sans-serif;
+            min-height:100vh;
+            background:#f8fafc;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            padding:24px;
+        }
+
+        form{
+
+            width:100%;
+            max-width:460px;
+
+            background:white;
+
+            padding:38px;
+
+            border-radius:28px;
+
+            border:1px solid #e5e7eb;
+
+            box-shadow:0 10px 30px rgba(0,0,0,0.06);
+        }
+
+        h1{
+
+            color:#111827;
+
+            text-align:center;
+
+            font-size:32px;
+            font-weight:800;
+
+            margin-bottom:10px;
+
+            letter-spacing:-1px;
+        }
+
+        .subtitle{
+
+            text-align:center;
+
+            color:#6b7280;
+
+            font-size:15px;
+
+            margin-bottom:30px;
+
+            line-height:1.6;
+        }
+
+        label{
+
+            display:block;
+
+            margin-bottom:8px;
+
+            font-size:14px;
+            font-weight:600;
+
+            color:#374151;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"]{
+
+            width:100%;
+
+            padding:14px 16px;
+
+            border-radius:14px;
+
+            border:1px solid #d1d5db;
+
+            font-size:14px;
+
+            margin-bottom:20px;
+
+            background:white;
+
+            transition:0.25s ease;
+
+            font-family:'Inter',sans-serif;
+        }
+
+        input:focus{
+
+            outline:none;
+
+            border-color:#2563eb;
+
+            box-shadow:0 0 0 4px rgba(37,99,235,0.1);
+        }
+
+        button{
+
+            width:100%;
+
+            padding:14px;
+
+            border:none;
+
+            border-radius:14px;
+
+            font-size:14px;
+            font-weight:600;
+
+            cursor:pointer;
+
+            transition:0.25s ease;
+
+            font-family:'Inter',sans-serif;
+        }
+
+        .google-btn{
+
+            background:white;
+
+            color:#111827;
+
+            border:1px solid #e5e7eb;
+
+            box-shadow:0 4px 10px rgba(0,0,0,0.04);
+
+            margin-top:5px;
+            margin-bottom:14px;
+        }
+
+        .google-btn:hover{
+
+            background:#f9fafb;
+
+            transform:translateY(-1px);
+        }
+
+        .signup-btn{
+
+            background:#2563eb;
+
+            color:white;
+        }
+
+        .signup-btn:hover{
+
+            background:#1d4ed8;
+
+            transform:translateY(-1px);
+        }
+
+        .login-box{
+
+            margin-top:24px;
+
+            text-align:center;
+
+            padding:22px;
+
+            background:#f8fafc;
+
+            border-radius:18px;
+
+            border:1px solid #e5e7eb;
+        }
+
+        .login-box p{
+
+            margin-bottom:14px;
+
+            color:#6b7280;
+
+            font-size:14px;
+        }
+
+        .login-link{
+
+            display:inline-block;
+
+            width:100%;
+
+            padding:13px;
+
+            background:#111827;
+
+            color:white;
+
+            text-decoration:none;
+
+            border-radius:14px;
+
+            font-weight:600;
+
+            transition:0.25s ease;
+        }
+
+        .login-link:hover{
+
+            background:#1f2937;
+
+            transform:translateY(-1px);
+        }
+
+        .error-box{
+
+            background:#fef2f2;
+
+            border:1px solid #fecaca;
+
+            color:#b91c1c;
+
+            padding:14px;
+
+            border-radius:14px;
+
+            margin-bottom:22px;
+
+            font-size:14px;
+        }
+
+        @media(max-width:600px){
+
+            form{
+                padding:28px 22px;
+                border-radius:22px;
+            }
+
+            h1{
+                font-size:28px;
+            }
+        }
+
+    </style>
+</head>
+
+<script type="module">
+
+/////////////////////////////////////////////////////
+// FIREBASE IMPORTS
+/////////////////////////////////////////////////////
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+    getAuth,
+    GoogleAuthProvider,
+    signInWithPopup
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+/////////////////////////////////////////////////////
+// FIREBASE CONFIG
+/////////////////////////////////////////////////////
+
+const firebaseConfig = {
+
+    apiKey: "{{ FIREBASE_API_KEY|escapejs }}",
+
+    authDomain: "{{ FIREBASE_AUTH_DOMAIN|escapejs }}",
+
+    projectId: "{{ FIREBASE_PROJECT_ID|escapejs }}",
+
+    storageBucket: "{{ FIREBASE_STORAGE_BUCKET|escapejs }}",
+
+    messagingSenderId: "{{ FIREBASE_MESSAGING_SENDER_ID|escapejs }}",
+
+    appId: "{{ FIREBASE_APP_ID|escapejs }}"
+};
+
+/////////////////////////////////////////////////////
+// INITIALIZE FIREBASE
+/////////////////////////////////////////////////////
+
+const app = initializeApp(firebaseConfig);
+
+const auth = getAuth(app);
+
+const provider = new GoogleAuthProvider();
+
+/////////////////////////////////////////////////////
+// GOOGLE SIGNUP BUTTON
+/////////////////////////////////////////////////////
+
+window.googleSignup = async function() {
+
+    try {
+
+        const result = await signInWithPopup(auth, provider);
+
+        const user = result.user;
+
+        console.log("✅ GOOGLE USER:", user);
+
+        const name = user.displayName;
+        const email = user.email;
+        const photo = user.photoURL;
+
+        localStorage.setItem("google_name", name);
+        localStorage.setItem("google_email", email);
+        localStorage.setItem("google_photo", photo);
+
+        alert("Google Login Success 😎🔥");
+
+    } catch (error) {
+
+        console.error("🔥 FULL FIREBASE ERROR:", error);
+
+        alert(error.message);
+    }
+};
+
+</script>
+
+<body>
+
+    <form method="post">
+
+       {% csrf_token %}
+
+        <h1>Technician Signup</h1>
+
+        <p class="subtitle">
+            Create your technician account and start managing service requests efficiently.
+        </p>
+
+        {% if error %}
+        <div class="error-box">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required>
+
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required>
+
+        <label for="contact">Contact</label>
+        <input type="text" id="contact" name="contact" required>
+
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required>
+
+        <button
+            type="button"
+            onclick="googleSignup()"
+            class="google-btn">
+
+            Continue with Google
+
+        </button>
+
+        <button type="submit" class="signup-btn">
+            Sign Up
+        </button>
+
+        <div class="login-box">
+
+            <p>Already have an account?</p>
+
+            <a href="{% url 'technician_login' %}" class="login-link">
+                Login Here
+            </a>
+
+        </div>
+
+    </form>
+
+</body>
+</html>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Logout</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:24px;
+    font-family:'Inter',sans-serif;
+    background:#f8fafc;
+}
+
+/* ===== Container ===== */
+
+.container{
+
+    width:100%;
+    max-width:500px;
+
+    text-align:center;
+
+    background:white;
+
+    padding:50px 40px;
+
+    border-radius:28px;
+
+    border:1px solid #e5e7eb;
+
+    box-shadow:0 10px 30px rgba(0,0,0,0.06);
+}
+
+/* ===== Icon ===== */
+
+.logout-icon{
+
+    width:80px;
+    height:80px;
+
+    margin:0 auto 24px;
+
+    border-radius:50%;
+
+    background:#eff6ff;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    font-size:34px;
+}
+
+/* ===== Heading ===== */
+
+h2{
+
+    color:#111827;
+
+    font-size:30px;
+    font-weight:800;
+
+    margin-bottom:14px;
+
+    letter-spacing:-1px;
+}
+
+/* ===== Text ===== */
+
+p{
+
+    color:#6b7280;
+
+    font-size:15px;
+
+    line-height:1.7;
+
+    margin-bottom:32px;
+}
+
+/* ===== Button ===== */
+
+a{
+
+    display:inline-flex;
+
+    align-items:center;
+    justify-content:center;
+
+    text-decoration:none;
+
+    background:#2563eb;
+
+    color:white;
+
+    padding:14px 24px;
+
+    border-radius:14px;
+
+    font-size:14px;
+    font-weight:600;
+
+    transition:0.25s ease;
+
+    box-shadow:0 6px 18px rgba(37,99,235,0.18);
+}
+
+a:hover{
+
+    background:#1d4ed8;
+
+    transform:translateY(-2px);
+}
+
+/* ===== Responsive ===== */
+
+@media(max-width:600px){
+
+    .container{
+        padding:40px 24px;
+        border-radius:22px;
+    }
+
+    h2{
+        font-size:26px;
+    }
+
+    p{
+        font-size:14px;
+    }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="logout-icon">
+        👋
+    </div>
+
+    <h2>You have been logged out</h2>
+
+    <p>
+        Your session has ended successfully.
+    </p>
+
+    <a href="{% url 'technician_login' %}">
+        Login Again
+    </a>
+
+</div>
+
+</body>
+</html>

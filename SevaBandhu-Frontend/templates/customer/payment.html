@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+.payment-page {
+    max-width: 760px;
+    margin: 40px auto;
+    padding: 24px;
+    background: #fff;
+    border-radius: 24px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+}
+.payment-header {
+    margin-bottom: 24px;
+}
+.payment-header h1 {
+    font-size: 32px;
+    color: #111827;
+    margin-bottom: 8px;
+}
+.payment-header p {
+    color: #6b7280;
+    line-height: 1.7;
+}
+.payment-info {
+    display: grid;
+    gap: 14px;
+    margin-bottom: 24px;
+}
+.payment-card {
+    padding: 18px;
+    background: #f8fafc;
+    border-radius: 18px;
+    border: 1px solid #e2e8f0;
+}
+.payment-card span {
+    display: block;
+}
+.payment-card strong {
+    color: #111827;
+}
+.payment-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 18px;
+}
+.btn-pay {
+    padding: 14px 22px;
+    border-radius: 14px;
+    border: none;
+    background: #2563eb;
+    color: white;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.btn-secondary {
+    background: #111827;
+    color: white;
+    padding: 14px 22px;
+    border-radius: 14px;
+    text-decoration: none;
+    font-weight: 700;
+}
+.btn-pay:hover,
+.btn-secondary:hover {
+    opacity: 0.95;
+}
+</style>
+
+<div class="payment-page">
+    <div class="payment-header">
+        <h1>Payment for Service Request #{{ service_request.id }}</h1>
+        <p>Review the service details below and click Pay Now to complete the payment.</p>
+    </div>
+
+    <div class="payment-info">
+        <div class="payment-card">
+            <span><strong>Service Category:</strong> {{ service_request.service_detail.service_category }}</span>
+            <span><strong>Preferred Date:</strong> {{ service_request.service_detail.preferred_service_date }}</span>
+            <span><strong>Time Slot:</strong> {{ service_request.service_detail.preferred_time_slot }}</span>
+            <span><strong>Amount:</strong> ₹{{ service_request.amount }}</span>
+            <span><strong>Payment Method:</strong> {{ service_request.payment_method|capfirst }}</span>
+            <span><strong>Payment Status:</strong> {{ service_request.payment_status|capfirst }}</span>
+            <span><strong>Customer Contact:</strong> {{ service_request.service_detail.contact_number }}</span>
+        </div>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="payment-actions">
+            <button type="submit" class="btn-pay">Pay Now</button>
+            <a href="{% url 'customer_my_requests' %}" class="btn-secondary">Back to Requests</a>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

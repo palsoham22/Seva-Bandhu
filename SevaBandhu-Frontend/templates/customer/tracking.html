@@ -1,0 +1,510 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+
+<!-- LEAFLET CSS -->
+<link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet/dist/leaflet.css"
+/>
+
+<link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css"
+/>
+
+<style>
+
+/* ===== Main Container ===== */
+
+.tracking-container{
+    max-width:1300px;
+    margin:auto;
+    padding:20px;
+}
+
+/* ===== Header ===== */
+
+.tracking-header{
+
+    background:white;
+
+    padding:30px;
+
+    border-radius:24px;
+
+    border:1px solid #e5e7eb;
+
+    box-shadow:0 8px 24px rgba(0,0,0,0.05);
+
+    margin-bottom:24px;
+}
+
+.tracking-header h2{
+
+    margin:0;
+
+    font-size:32px;
+    font-weight:800;
+
+    color:#111827;
+
+    letter-spacing:-1px;
+
+    margin-bottom:10px;
+}
+
+.tracking-header p{
+
+    color:#6b7280;
+
+    font-size:15px;
+
+    line-height:1.7;
+}
+
+/* ===== Map ===== */
+
+#map{
+
+    height:760px;
+
+    width:100%;
+
+    border-radius:24px;
+
+    overflow:hidden;
+
+    border:1px solid #e5e7eb;
+
+    box-shadow:0 8px 24px rgba(0,0,0,0.05);
+
+    margin-bottom:24px;
+}
+
+/* ===== Status Card ===== */
+
+.status-box{
+
+    background:white;
+
+    padding:28px;
+
+    border-radius:24px;
+
+    border:1px solid #e5e7eb;
+
+    box-shadow:0 8px 24px rgba(0,0,0,0.05);
+}
+
+/* ===== Live Status ===== */
+
+.status-live{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    background:#ecfdf5;
+
+    color:#166534;
+
+    padding:12px 18px;
+
+    border-radius:999px;
+
+    font-weight:700;
+
+    font-size:14px;
+
+    margin-bottom:24px;
+}
+
+/* ===== Location Info ===== */
+
+.location-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(2,1fr);
+
+    gap:20px;
+}
+
+.location-card{
+
+    background:#f8fafc;
+
+    border:1px solid #e5e7eb;
+
+    border-radius:18px;
+
+    padding:20px;
+}
+
+.location-label{
+
+    color:#6b7280;
+
+    font-size:13px;
+
+    font-weight:600;
+
+    text-transform:uppercase;
+
+    letter-spacing:0.5px;
+
+    margin-bottom:10px;
+}
+
+.location-value{
+
+    font-size:22px;
+
+    font-weight:700;
+
+    color:#111827;
+
+    word-break:break-word;
+}
+
+/* ===== Responsive ===== */
+
+@media(max-width:768px){
+
+    .tracking-header{
+        padding:24px;
+        border-radius:20px;
+    }
+
+    .tracking-header h2{
+        font-size:28px;
+    }
+
+    #map{
+        height:450px;
+        border-radius:20px;
+    }
+
+    .status-box{
+        padding:22px;
+        border-radius:20px;
+    }
+
+    .location-grid{
+        grid-template-columns:1fr;
+    }
+
+}
+
+@media(max-width:500px){
+
+    .tracking-container{
+        padding:14px;
+    }
+
+    .tracking-header h2{
+        font-size:24px;
+    }
+
+    .location-value{
+        font-size:18px;
+    }
+
+}
+
+</style>
+
+<div class="tracking-container">
+
+    <!-- Header -->
+    <div class="tracking-header">
+
+        <h2>📍 Live Technician Tracking</h2>
+
+        <p>
+            Track your technician in realtime as they travel to your location.
+        </p>
+
+    </div>
+<div id="journey-info"
+
+style="
+background:white;
+padding:15px;
+margin-bottom:15px;
+border-radius:10px;
+font-weight:bold;
+font-size:18px;
+">
+
+🚗 Calculating route...
+
+</div>
+    <!-- Map -->
+    <div id="map"></div>
+
+    <!-- Status -->
+    <div class="status-box">
+
+        <div class="status-live" id="tracking-status">
+
+            🟡 Connecting to technician...
+
+        </div>
+
+        
+        </div>
+
+</div>
+
+<!-- LEAFLET JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+
+<script>
+
+/////////////////////////////////////////////////////
+// MAP
+/////////////////////////////////////////////////////
+
+const map = L.map('map').setView([22.5726, 88.3639], 13);
+
+L.tileLayer(
+    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    {
+        attribution: '© OpenStreetMap contributors'
+    }
+).addTo(map);
+
+/////////////////////////////////////////////////////
+// TECHNICIAN MARKER
+/////////////////////////////////////////////////////
+
+const technicianIcon = L.icon({
+
+    iconUrl:
+    'https://cdn-icons-png.flaticon.com/512/744/744465.png',
+
+    iconSize: [40, 40],
+
+    iconAnchor: [20, 20]
+
+});
+
+const technicianMarker = L.marker(
+
+    [0, 0],
+
+    {
+
+        icon: technicianIcon,
+
+        zIndexOffset: 1000
+
+    }
+
+)
+
+.addTo(map)
+
+.bindPopup("🚗 Technician");
+
+/////////////////////////////////////////////////////
+// CUSTOMER LOCATION
+/////////////////////////////////////////////////////
+
+const customerLat = parseFloat(
+    "{{ service_request.customer_latitude }}"
+);
+
+const customerLng = parseFloat(
+    "{{ service_request.customer_longitude }}"
+);
+
+/////////////////////////////////////////////////////
+// CUSTOMER MARKER
+/////////////////////////////////////////////////////
+
+const customerMarker = L.marker(
+
+    [customerLat, customerLng]
+
+)
+
+.addTo(map)
+
+.bindPopup("🏠 Customer Location");
+
+/////////////////////////////////////////////////////
+// ROUTE CONTROL
+/////////////////////////////////////////////////////
+
+let routeControl = L.Routing.control({
+createMarker: function() {
+
+    return null;
+
+},
+    waypoints: [
+L.latLng(22.5726, 88.3639),
+L.latLng(customerLat, customerLng)
+    ],
+
+    routeWhileDragging: false,
+
+    addWaypoints: false,
+
+    draggableWaypoints: false,
+
+    fitSelectedRoutes: true,
+
+    show: false
+
+})
+
+.addTo(map);
+/////////////////////////////////////////////////////
+// ETA + DISTANCE
+/////////////////////////////////////////////////////
+
+routeControl.on(
+
+    'routesfound',
+
+    function(e) {
+
+        const route =
+        e.routes[0];
+
+        const distance =
+        (
+            route.summary.totalDistance / 1000
+        ).toFixed(2);
+
+        const time =
+        Math.round(
+            route.summary.totalTime / 60
+        );
+
+        document.getElementById(
+            'journey-info'
+        ).innerHTML =
+
+        `🚗 ${time} mins away • 📍 ${distance} km remaining`;
+
+    }
+
+);
+/////////////////////////////////////////////////////
+// WEBSOCKET
+/////////////////////////////////////////////////////
+
+const wsProtocol =
+    window.location.protocol === "https:"
+    ? "wss://"
+    : "ws://";
+
+const socket = new WebSocket(
+
+    wsProtocol +
+    window.location.host +
+    '/ws/tracking/{{ service_request.id }}/'
+
+);
+
+/////////////////////////////////////////////////////
+// SOCKET CONNECTED
+/////////////////////////////////////////////////////
+
+socket.onopen = function() {
+
+   document.getElementById(
+    'tracking-status'
+).innerHTML =
+
+'🟢 Technician Connected';
+};
+
+/////////////////////////////////////////////////////
+// RECEIVE LIVE GPS
+/////////////////////////////////////////////////////
+
+socket.onmessage = function(event) {
+
+    try {
+
+        const data = JSON.parse(event.data);
+
+        console.log("📩 LIVE DATA:", data);
+
+        /////////////////////////////////////////////////////
+        // LIVE LOCATION UPDATE
+        /////////////////////////////////////////////////////
+
+        if (data.type === "location_update") {
+
+            const lat = parseFloat(data.latitude);
+
+            const lng = parseFloat(data.longitude);
+
+            console.log("📍 MOVING TO:", lat, lng);
+
+            /////////////////////////////////////////////////////
+            // MOVE MARKER
+            /////////////////////////////////////////////////////
+
+            technicianMarker.setLatLng([lat, lng]);
+
+            routeControl.setWaypoints([
+
+                L.latLng(lat, lng),
+L.latLng(customerLat, customerLng)
+
+            ]);
+
+            /////////////////////////////////////////////////////
+            // MOVE MAP CAMERA
+            /////////////////////////////////////////////////////
+
+            map.panTo([lat, lng]);
+
+            /////////////////////////////////////////////////////
+            // UPDATE TEXT
+            /////////////////////////////////////////////////////
+
+            
+        }
+
+    } catch (e) {
+
+        console.error("❌ Tracking Error:", e);
+
+    }
+};
+
+/////////////////////////////////////////////////////
+// SOCKET ERRORS
+/////////////////////////////////////////////////////
+
+socket.onerror = function(error) {
+
+    console.error("❌ SOCKET ERROR:", error);
+
+};
+
+socket.onclose = function() {
+
+    document.getElementById(
+    'tracking-status'
+).innerHTML =
+
+'🔴 Technician Disconnected';
+};
+
+</script>
+
+{% endblock %}

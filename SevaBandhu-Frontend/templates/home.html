@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+
+/* ===== Hero Layout ===== */
+
+.hero{
+display:flex;
+gap:50px;
+align-items:center;
+justify-content:space-between;
+flex-wrap:wrap;
+margin-bottom:50px;
+}
+
+.hero-left{
+flex:1;
+min-width:320px;
+}
+
+.hero-right{
+flex:1;
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:18px;
+}
+
+.hero-right img{
+width:100%;
+height:220px;
+object-fit:cover;
+border-radius:18px;
+transition:0.35s ease;
+box-shadow:0 4px 14px rgba(0,0,0,0.08);
+}
+
+.hero-right img:hover{
+transform:translateY(-4px) scale(1.02);
+}
+
+
+/* ===== Hero Text ===== */
+
+.hero-left h1{
+font-size:42px;
+font-weight:800;
+line-height:1.2;
+margin-bottom:18px;
+color:#111827;
+letter-spacing:-1px;
+}
+
+.hero-left p{
+font-size:16px;
+line-height:1.8;
+margin-bottom:20px;
+color:#6b7280;
+max-width:650px;
+}
+
+
+/* ===== Services Section ===== */
+
+.services{
+margin-top:40px;
+}
+
+.services h3{
+font-size:24px;
+font-weight:700;
+margin-bottom:20px;
+color:#111827;
+}
+
+.service-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:20px;
+margin-top:20px;
+}
+
+.service-card{
+background:white;
+padding:28px 22px;
+border-radius:18px;
+text-align:center;
+border:1px solid #e5e7eb;
+box-shadow:0 2px 10px rgba(0,0,0,0.04);
+transition:0.3s ease;
+font-size:14px;
+font-weight:500;
+color:#374151;
+}
+
+.service-card:hover{
+transform:translateY(-5px);
+box-shadow:0 10px 24px rgba(0,0,0,0.08);
+border-color:#dbeafe;
+background:#ffffff;
+}
+
+.service-icon{
+font-size:36px;
+margin-bottom:14px;
+}
+
+
+/* ===== About Section ===== */
+
+.about-box{
+margin-top:40px;
+background:white;
+padding:32px;
+border-radius:20px;
+border:1px solid #e5e7eb;
+box-shadow:0 4px 16px rgba(0,0,0,0.05);
+}
+
+.about-box h3{
+font-size:24px;
+font-weight:700;
+margin-bottom:16px;
+color:#111827;
+}
+
+.about-box p{
+line-height:1.9;
+color:#6b7280;
+font-size:15px;
+}
+
+
+/* ===== Responsive ===== */
+
+@media(max-width:992px){
+
+.hero{
+flex-direction:column;
+}
+
+.hero-left h1{
+font-size:34px;
+}
+
+.hero-right{
+width:100%;
+}
+
+}
+
+@media(max-width:600px){
+
+.hero-right{
+grid-template-columns:1fr;
+}
+
+.hero-left h1{
+font-size:28px;
+}
+
+.services h3,
+.about-box h3{
+font-size:22px;
+}
+
+}
+
+</style>
+
+<div class="hero">
+
+<!-- ===== LEFT SIDE ===== -->
+
+<div class="hero-left">
+
+<h1>Technician Service Assigning System</h1>
+
+<p>
+A smart platform to manage service requests and assign technicians
+based on skills, availability, and location.
+</p>
+
+<!-- ===== Services ===== -->
+
+<div class="services">
+
+<h3>Key Features</h3>
+
+<div class="service-grid">
+
+<div class="service-card">
+<div class="service-icon">📝</div>
+Online Service Request Registration
+</div>
+
+<div class="service-card">
+<div class="service-icon">🔧</div>
+Technician Assignment System
+</div>
+
+<div class="service-card">
+<div class="service-icon">📊</div>
+Job Status Tracking
+</div>
+
+<div class="service-card">
+<div class="service-icon">⚡</div>
+Fast Technician Dispatch
+</div>
+
+</div>
+
+</div>
+
+<!-- ===== About Section ===== -->
+
+<div class="about-box">
+
+<h3>About This System</h3>
+
+<p>
+Seva Bandhu is designed to help service companies manage customer
+complaints, assign suitable technicians, and track job progress
+efficiently. The system improves response time and service quality
+through digital automation.
+</p>
+
+</div>
+
+</div>
+
+<!-- ===== RIGHT SIDE IMAGES ===== -->
+
+<div class="hero-right">
+
+<img src="https://www.airconditioning-cleaning.com/wp-content/uploads/2022/05/iStock-1351102754-scaled.jpg">
+
+<img src="https://blog.ed2go.com/wp-content/uploads/2022/06/blog_electrician_1200x600.jpg">
+
+<img src="https://goodbeeplumbinganddrains.com/wp-content/uploads/2023/01/iStock-1341381755-1024x683.jpg">
+
+<img src="https://www.samatechnicalservices.com/wp-content/uploads/2022/09/Washing-Machine-Repair-Saadiyat-Beach-residence.jpg">
+
+</div>
+
+</div>
+
+{% endblock %}

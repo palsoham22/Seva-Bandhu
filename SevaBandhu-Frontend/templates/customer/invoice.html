@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Seva Bandhu Invoice</title>
+  <link href="https://fonts.googleapis.com/css2?family=Georgia&family=DM+Serif+Display&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #f0f0f0;
+      font-family: 'Courier Prime', 'Courier New', monospace;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    /* ===== INVOICE WRAPPER ===== */
+    .invoice-wrapper {
+      background: #ffffff;
+      width: 780px;
+      min-height: 1100px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.10);
+    }
+
+    /* ===== CONTENT AREA ===== */
+    .invoice-content {
+      padding: 50px 70px 60px 70px;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* ===== LOGO SECTION ===== */
+    .logo-section {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 32px;
+    }
+
+    .logo-icon {
+      background: #3b4fd8;
+      border-radius: 14px;
+      width: 56px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .logo-icon span {
+      color: #ffffff;
+      font-family: 'Courier Prime', monospace;
+      font-weight: 700;
+      font-size: 22px;
+      letter-spacing: 1px;
+    }
+
+    .logo-text {
+      font-family: 'Courier Prime', monospace;
+      font-size: 34px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      line-height: 1;
+    }
+
+    .logo-text .black { color: #111111; }
+    .logo-text .blue  { color: #3b4fd8; }
+
+    /* ===== INVOICE TITLE ===== */
+    .invoice-title {
+      text-align: center;
+      font-family: 'Georgia', serif;
+      font-size: 64px;
+      font-weight: 900;
+      letter-spacing: 6px;
+      color: #111111;
+      margin-bottom: 48px;
+      line-height: 1;
+    }
+
+    /* ===== DIVIDER ===== */
+    .divider {
+      border: none;
+      border-top: 1.5px solid #111111;
+      margin: 0;
+    }
+
+    /* ===== CUSTOMER DETAILS ===== */
+    .details-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      padding: 36px 0 40px 0;
+    }
+
+    .details-left,
+    .details-right {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .details-right {
+      padding-left: 20px;
+    }
+
+    .detail-item {
+      font-family: 'Courier Prime', monospace;
+      font-size: 15.5px;
+      color: #111111;
+      letter-spacing: 0.5px;
+      line-height: 1.4;
+    }
+
+    .detail-label {
+      font-weight: 400;
+    }
+
+    .technician-label {
+      font-size: 15.5px;
+      font-family: 'Courier Prime', monospace;
+      color: #111111;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .technician-name {
+      font-size: 15.5px;
+      font-family: 'Courier Prime', monospace;
+      color: #111111;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    /* ===== TABLE SECTION ===== */
+    .table-section {
+      margin-top: 10px;
+    }
+
+    .invoice-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    /* Table header row */
+    .invoice-table thead tr th {
+      font-family: 'Courier Prime', monospace;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: #111111;
+      padding: 12px 0 12px 0;
+      border-bottom: 1.5px solid #111111;
+    }
+
+    .invoice-table thead tr th:first-child { text-align: left; }
+    .invoice-table thead tr th:last-child  { text-align: right; }
+
+    /* Table body rows */
+    .invoice-table tbody tr td {
+      font-family: 'Courier Prime', monospace;
+      font-size: 15px;
+      color: #111111;
+      padding: 14px 0;
+      border-bottom: 1px solid #bbbbbb;
+      letter-spacing: 0.3px;
+    }
+
+    .invoice-table tbody tr td:first-child { text-align: left; }
+    .invoice-table tbody tr td:last-child  { text-align: right; }
+
+    /* Sub-total / discount rows — no border on last before total */
+    .invoice-table tbody tr.subtotal-row td,
+    .invoice-table tbody tr.discount-row td {
+      border-bottom: none;
+      padding: 6px 0;
+      font-size: 14.5px;
+    }
+
+    .invoice-table tbody tr.subtotal-row td { padding-top: 18px; }
+    .invoice-table tbody tr.discount-row td { padding-bottom: 10px; }
+
+    /* Separator above sub-total block */
+    .invoice-table tbody tr.separator-row td {
+      padding: 0;
+      border-bottom: 1.5px solid #111111;
+      line-height: 0;
+    }
+
+    /* TOTAL row */
+    .invoice-table tbody tr.total-row td {
+      font-family: 'Courier Prime', monospace;
+      font-weight: 700;
+      font-size: 19px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #111111;
+      padding: 16px 0 10px 0;
+      border-top: 1.5px solid #111111;
+      border-bottom: none;
+    }
+
+    /* ===== PAID STAMP ===== */
+    .stamp-footer-area {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      margin-top: 30px;
+      margin-bottom: 0;
+    }
+
+    .footer-text {
+      font-family: 'Courier Prime', monospace;
+      font-size: 13.5px;
+      color: #111111;
+      letter-spacing: 0.4px;
+      text-align: center;
+      position: absolute;
+      width: 100%;
+      z-index: 1;
+    }
+
+    .paid-stamp {
+      position: relative;
+      z-index: 2;
+      width: 110px;
+      height: 110px;
+      flex-shrink: 0;
+    }
+
+    .paid-stamp svg {
+      width: 110px;
+      height: 110px;
+      transform: rotate(-8deg);
+    }
+
+    /* ===== BOTTOM GRADIENT SHAPE ===== */
+    .bottom-gradient {
+      position: relative;
+      height: 130px;
+      margin-top: 50px;
+      overflow: hidden;
+    }
+
+    .bottom-gradient::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 160px;
+      background: linear-gradient(135deg, #2a2fd4 0%, #5b3fd8 55%, #7b4fe8 100%);
+      clip-path: polygon(0% 55%, 38% 0%, 100% 0%, 100% 100%, 0% 100%);
+    }
+
+    /* ===== PRINT STYLES ===== */
+    @media print {
+      body { background: none; padding: 0; }
+      .invoice-wrapper { box-shadow: none; width: 100%; }
+      .bottom-gradient::before { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 860px) {
+      .invoice-content { padding: 36px 28px 40px 28px; }
+      .invoice-title { font-size: 44px; }
+      .details-section { grid-template-columns: 1fr; gap: 20px; }
+      .details-right { padding-left: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="invoice-wrapper">
+  <div class="invoice-content">
+
+    <!-- ===== LOGO ===== -->
+    <div class="logo-section">
+      <div class="logo-icon"><span>SB</span></div>
+      <div class="logo-text">
+        <span class="black">Seva </span><span class="blue">Bandhu</span>
+      </div>
+    </div>
+
+    <!-- ===== INVOICE TITLE ===== -->
+    <h1 class="invoice-title">INVOICE</h1>
+
+    <hr class="divider"/>
+
+    <!-- ===== CUSTOMER DETAILS ===== -->
+    <div class="details-section">
+      <!-- Left Column -->
+      <div class="details-left">
+        <div class="detail-item">Date: {{ service.created_at|date:"F j, Y" }}</div>
+        <div class="detail-item">Customer Name: {{ service.customer.user.username }}</div>
+        <div class="detail-item">Customer Email: {{ service.customer.user.email }}</div>
+        <div class="detail-item">Customer Contact: {{ service.service_detail.contact_number }}</div>
+      </div>
+      <!-- Right Column -->
+      <div class="details-right">
+        <div class="detail-item">Payment Method: {{ service.payment_method|capfirst }}</div>
+        <div style="margin-top:8px;">
+          <div class="technician-label">Technician:</div>
+          <div class="technician-name">
+            {% if service.technician %}
+              {{ service.technician.user.username }}
+            {% else %}
+              Not Assigned
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TABLE ===== -->
+    <div class="table-section">
+      <table class="invoice-table">
+        <thead>
+          <tr>
+            <th>Service Category</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ service.service_detail.service_category }}</td>
+            <td>₹{{ service.amount }}</td>
+          </tr>
+          <tr class="subtotal-row">
+            <td>Sub-Total</td>
+            <td>₹{{ service.amount }}</td>
+          </tr>
+          <tr class="discount-row">
+            <td>Discount</td>
+            <td>₹0.00</td>
+          </tr>
+          <tr class="total-row">
+            <td>TOTAL</td>
+            <td>₹{{ service.amount }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ===== PAID STAMP + FOOTER ===== -->
+    <div class="stamp-footer-area">
+      <p class="footer-text">
+        Thank you for choosing Seva Bandhu. Please contact support for any questions.
+      </p>
+      <!-- Red PAID stamp SVG -->
+      <div class="paid-stamp">
+        <svg viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
+          <!-- Outer dashed circle -->
+          <circle cx="55" cy="55" r="50" fill="none" stroke="#cc0000" stroke-width="2.5" stroke-dasharray="4 3"/>
+          <!-- Inner solid circle border -->
+          <circle cx="55" cy="55" r="43" fill="none" stroke="#cc0000" stroke-width="1.5"/>
+          <!-- Tiny stars / dots decoration -->
+          <circle cx="55" cy="8"  r="2" fill="#cc0000"/>
+          <circle cx="55" cy="102" r="2" fill="#cc0000"/>
+          <circle cx="8"  cy="55" r="2" fill="#cc0000"/>
+          <circle cx="102" cy="55" r="2" fill="#cc0000"/>
+          <!-- Top arc text: THANK YOU -->
+          <path id="topArc" d="M 20,55 A 35,35 0 0,1 90,55" fill="none"/>
+          <text font-family="'Courier Prime', monospace" font-size="7.5" fill="#cc0000" font-weight="700" letter-spacing="3">
+            <textPath href="#topArc" startOffset="10%">THANK YOU ✦ THANK YOU</textPath>
+          </text>
+          <!-- Bottom arc text: THANK YOU -->
+          <path id="bottomArc" d="M 90,55 A 35,35 0 0,1 20,55" fill="none"/>
+          <text font-family="'Courier Prime', monospace" font-size="7.5" fill="#cc0000" font-weight="700" letter-spacing="3">
+            <textPath href="#bottomArc" startOffset="10%">THANK YOU ✦ THANK YOU</textPath>
+          </text>
+          <!-- PAID text -->
+          <text x="55" y="64" text-anchor="middle"
+                font-family="'Courier Prime', monospace"
+                font-size="28" font-weight="900"
+                fill="#cc0000" letter-spacing="3">PAID</text>
+        </svg>
+      </div>
+    </div>
+
+  </div><!-- /invoice-content -->
+
+  <!-- ===== BOTTOM GRADIENT ===== -->
+  <div class="bottom-gradient"></div>
+
+</div><!-- /invoice-wrapper -->
+
+</body>
+</html>

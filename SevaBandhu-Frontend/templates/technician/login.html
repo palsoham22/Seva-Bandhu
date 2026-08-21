@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Technician Login</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+
+    min-height:100vh;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    padding:24px;
+
+    background:#f8fafc;
+
+    font-family:'Inter',sans-serif;
+}
+
+/* ===== Main Login Card ===== */
+
+.container{
+
+    width:100%;
+    max-width:460px;
+}
+
+/* ===== Heading ===== */
+
+h2{
+
+    color:#111827;
+
+    text-align:center;
+
+    font-size:32px;
+    font-weight:800;
+
+    letter-spacing:-1px;
+
+    margin-bottom:12px;
+}
+
+.subtitle{
+
+    text-align:center;
+
+    color:#6b7280;
+
+    font-size:15px;
+
+    line-height:1.6;
+
+    margin-bottom:32px;
+}
+
+/* ===== Form Box ===== */
+
+form{
+
+    background:white;
+
+    padding:38px;
+
+    border-radius:28px;
+
+    border:1px solid #e5e7eb;
+
+    box-shadow:0 10px 30px rgba(0,0,0,0.06);
+}
+
+/* ===== Labels ===== */
+
+label{
+
+    display:block;
+
+    margin-bottom:8px;
+
+    font-size:14px;
+    font-weight:600;
+
+    color:#374151;
+}
+
+/* ===== Inputs ===== */
+
+input[type="text"],
+input[type="password"]{
+
+    width:100%;
+
+    padding:14px 16px;
+
+    margin-bottom:22px;
+
+    border-radius:14px;
+
+    border:1px solid #d1d5db;
+
+    font-size:14px;
+
+    background:white;
+
+    transition:0.25s ease;
+
+    font-family:'Inter',sans-serif;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus{
+
+    outline:none;
+
+    border-color:#2563eb;
+
+    box-shadow:0 0 0 4px rgba(37,99,235,0.1);
+}
+
+/* ===== Login Button ===== */
+
+input[type="submit"]{
+
+    width:100%;
+
+    padding:14px;
+
+    background:#2563eb;
+
+    color:white;
+
+    border:none;
+
+    border-radius:14px;
+
+    font-size:15px;
+    font-weight:600;
+
+    cursor:pointer;
+
+    transition:0.25s ease;
+
+    font-family:'Inter',sans-serif;
+
+    box-shadow:0 6px 18px rgba(37,99,235,0.18);
+}
+
+input[type="submit"]:hover{
+
+    background:#1d4ed8;
+
+    transform:translateY(-2px);
+}
+
+/* ===== Logout Section ===== */
+
+.logout{
+
+    text-align:center;
+
+    margin-top:24px;
+}
+
+.logout a{
+
+    display:inline-flex;
+
+    align-items:center;
+    justify-content:center;
+
+    text-decoration:none;
+
+    background:#111827;
+
+    color:white;
+
+    padding:13px 22px;
+
+    border-radius:14px;
+
+    font-size:14px;
+    font-weight:600;
+
+    transition:0.25s ease;
+}
+
+.logout a:hover{
+
+    background:#1f2937;
+
+    transform:translateY(-1px);
+}
+
+/* ===== Responsive ===== */
+
+@media(max-width:600px){
+
+    form{
+        padding:28px 22px;
+        border-radius:22px;
+    }
+
+    h2{
+        font-size:28px;
+    }
+
+    .subtitle{
+        font-size:14px;
+    }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h2>Technician Login</h2>
+
+    <p class="subtitle">
+        Login to manage assigned jobs, update live status,
+        and track customer service requests.
+    </p>
+
+    <form method="post">
+
+        {% csrf_token %}
+
+        <label for="username">
+            Username
+        </label>
+
+        <input type="text" id="username" name="username" required>
+
+        <label for="password">
+            Password
+        </label>
+
+        <input type="password" id="password" name="password" required>
+
+        <input type="submit" value="Login">
+
+    </form>
+</div>
+
+</body>
+</html>

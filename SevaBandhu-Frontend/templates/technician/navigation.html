@@ -1,0 +1,593 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<!-- LEAFLET CSS -->
+<link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet/dist/leaflet.css"
+/>
+
+<link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css"
+/>
+
+<style>
+
+/* ===== Main Container ===== */
+
+.tracking-container{
+    max-width:1300px;
+    margin:auto;
+    padding:20px;
+}
+
+/* ===== Header ===== */
+
+.tracking-header{
+
+    background:white;
+
+    padding:30px;
+
+    border-radius:24px;
+
+    border:1px solid #e5e7eb;
+
+    box-shadow:0 8px 24px rgba(0,0,0,0.05);
+
+    margin-bottom:24px;
+}
+
+.tracking-header h2{
+
+    margin:0;
+
+    font-size:32px;
+    font-weight:800;
+
+    color:#111827;
+
+    letter-spacing:-1px;
+
+    margin-bottom:10px;
+}
+
+.tracking-header p{
+
+    color:#6b7280;
+
+    font-size:15px;
+
+    line-height:1.7;
+}
+
+/* ===== Map ===== */
+
+#map{
+
+    height:760px;
+
+    width:100%;
+
+    border-radius:24px;
+
+    overflow:hidden;
+
+    border:1px solid #e5e7eb;
+
+    box-shadow:0 8px 24px rgba(0,0,0,0.05);
+
+    margin-bottom:24px;
+}
+
+/* ===== Status Card ===== */
+
+.status-box{
+
+    background:white;
+
+    padding:28px;
+
+    border-radius:24px;
+
+    border:1px solid #e5e7eb;
+
+    box-shadow:0 8px 24px rgba(0,0,0,0.05);
+}
+
+/* ===== Live Status ===== */
+
+.status-live{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    background:#ecfdf5;
+
+    color:#166534;
+
+    padding:12px 18px;
+
+    border-radius:999px;
+
+    font-weight:700;
+
+    font-size:14px;
+
+    margin-bottom:24px;
+}
+
+/* ===== Location Info ===== */
+
+.location-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(2,1fr);
+
+    gap:20px;
+}
+
+.location-card{
+
+    background:#f8fafc;
+
+    border:1px solid #e5e7eb;
+
+    border-radius:18px;
+
+    padding:20px;
+}
+
+.location-label{
+
+    color:#6b7280;
+
+    font-size:13px;
+
+    font-weight:600;
+
+    text-transform:uppercase;
+
+    letter-spacing:0.5px;
+
+    margin-bottom:10px;
+}
+
+.location-value{
+
+    font-size:22px;
+
+    font-weight:700;
+
+    color:#111827;
+
+    word-break:break-word;
+}
+
+/* ===== Responsive ===== */
+
+@media(max-width:768px){
+
+    .tracking-header{
+        padding:24px;
+        border-radius:20px;
+    }
+
+    .tracking-header h2{
+        font-size:28px;
+    }
+
+    #map{
+        height:450px;
+        border-radius:20px;
+    }
+
+    .status-box{
+        padding:22px;
+        border-radius:20px;
+    }
+
+    .location-grid{
+        grid-template-columns:1fr;
+    }
+
+}
+
+@media(max-width:500px){
+
+    .tracking-container{
+        padding:14px;
+    }
+
+    .tracking-header h2{
+        font-size:24px;
+    }
+
+    .location-value{
+        font-size:18px;
+    }
+
+}
+
+</style>
+
+<div class="tracking-container">
+
+    <!-- Header -->
+    <div class="tracking-header">
+
+        <h2>📍 Technician Navigation </h2>
+
+        <p>
+            Track your technician in realtime as they travel to your location.
+        </p>
+
+    </div>
+<div id="journey-info"
+
+style="
+background:white;
+padding:15px;
+margin-bottom:15px;
+border-radius:10px;
+font-weight:bold;
+font-size:18px;
+">
+
+🚗 Calculating route...
+
+</div>
+    <!-- Map -->
+    <div id="map"></div>
+
+
+            </div>
+
+    
+
+<!-- LEAFLET JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+
+<script>
+
+/////////////////////////////////////////////////////
+// MAP
+/////////////////////////////////////////////////////
+
+const map = L.map('map', {
+
+    zoomControl: true
+
+});
+
+L.tileLayer(
+
+    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+
+    {
+
+        maxZoom: 19,
+
+        attribution:
+        '&copy; OpenStreetMap contributors'
+
+    }
+
+).addTo(map);
+setTimeout(() => {
+
+    map.invalidateSize();
+
+}, 1000);
+/////////////////////////////////////////////////////
+// TECHNICIAN MARKER
+/////////////////////////////////////////////////////
+
+const technicianIcon = L.icon({
+
+    iconUrl:
+    'https://cdn-icons-png.flaticon.com/512/744/744465.png',
+
+    iconSize: [40, 40],
+
+    iconAnchor: [20, 20]
+
+});
+
+const technicianMarker = L.marker(
+
+    [0, 0],
+
+    {
+
+        icon: technicianIcon,
+
+        zIndexOffset: 1000
+
+    }
+
+)
+
+.addTo(map)
+.bindPopup("🚗 Technician");
+/////////////////////////////////////////////////////
+// CUSTOMER LOCATION
+/////////////////////////////////////////////////////
+
+const customerLat = parseFloat(
+    "{{ service_request.customer_latitude }}"
+    
+);
+
+
+const customerLng = parseFloat(
+    "{{ service_request.customer_longitude }}"
+);
+
+/////////////////////////////////////////////////////
+// CUSTOMER MARKER
+/////////////////////////////////////////////////////
+
+const customerIcon = L.icon({
+
+    iconUrl:
+    'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
+
+    shadowUrl:
+    'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+
+    iconSize: [25, 41],
+
+    iconAnchor: [12, 41],
+
+    popupAnchor: [1, -34],
+
+    shadowSize: [41, 41]
+
+});
+
+const customerMarker = L.marker(
+
+    [customerLat, customerLng],
+
+    {
+
+        icon: customerIcon,
+
+        zIndexOffset: 999
+
+    }
+
+)
+
+.addTo(map)
+
+.bindPopup("🏠 Customer Location");
+/////////////////////////////////////////////////////
+// ROUTE CONTROL
+/////////////////////////////////////////////////////
+
+
+
+/////////////////////////////////////////////////////
+// LIVE TECHNICIAN GPS
+/////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////
+// WEBSOCKET
+/////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////
+// WEBSOCKET
+/////////////////////////////////////////////////////
+
+const wsProtocol =
+
+    window.location.protocol === "https:"
+
+    ? "wss://"
+
+    : "ws://";
+
+const trackingSocket = new WebSocket(
+
+    wsProtocol +
+
+    window.location.host +
+
+    '/ws/tracking/{{ service_request.id }}/'
+
+);
+
+navigator.geolocation.watchPosition(
+
+    function(position) {
+
+        const lat =
+        position.coords.latitude;
+
+        const lng =
+        position.coords.longitude;
+
+        /////////////////////////////////////////////////////
+// SEND LIVE LOCATION TO CUSTOMER
+/////////////////////////////////////////////////////
+
+if (
+    trackingSocket.readyState === WebSocket.OPEN
+) {
+
+    trackingSocket.send(
+
+        JSON.stringify({
+
+            type: 'live_location',
+
+            request_id:
+            "{{ service_request.id }}",
+
+            latitude: lat,
+
+            longitude: lng
+
+        })
+
+    );
+
+}
+
+        /////////////////////////////////////////////////////
+        // FIRST GPS LOAD
+        /////////////////////////////////////////////////////
+
+setTimeout(() => {
+if (!window.mapInitialized) {
+
+    map.setView([lat, lng], 15);
+
+    window.mapInitialized = true;
+
+}
+
+    map.invalidateSize();
+
+}, 500);
+
+technicianMarker.setLatLng([lat, lng]);
+        /////////////////////////////////////////////////////
+// CREATE ROUTE ONLY AFTER GPS READY
+/////////////////////////////////////////////////////
+
+if (!window.routeControl) {
+
+    window.routeControl = L.Routing.control({
+        createMarker: function() {
+
+    return null;
+
+},
+
+        waypoints: [
+
+          L.latLng(lat, lng),
+L.latLng(customerLat, customerLng)
+
+        ],
+
+        routeWhileDragging: false,
+
+        addWaypoints: false,
+
+        draggableWaypoints: false,
+
+        fitSelectedRoutes: true,
+
+        show: false
+
+    }).addTo(map);
+    /////////////////////////////////////////////////////
+// ETA + DISTANCE
+/////////////////////////////////////////////////////
+
+window.routeControl.on(
+
+    'routesfound',
+
+    function(e) {
+
+        const route =
+        e.routes[0];
+
+        const distance =
+        (
+            route.summary.totalDistance / 1000
+        ).toFixed(2);
+
+        const time =
+        Math.round(
+            route.summary.totalTime / 60
+        );
+
+        document.getElementById(
+            'journey-info'
+        ).innerHTML =
+
+        `🚗 ${time} mins away • 📍 ${distance} km remaining`;
+
+    }
+
+);
+
+}
+else {
+
+    window.routeControl.setWaypoints([
+
+        L.latLng(customerLat, customerLng),
+
+        L.latLng(lat, lng)
+
+    ]);
+
+}
+
+        /////////////////////////////////////////////////////        // SEND LIVE LOCATION TO CUSTOMER
+        /////////////////////////////////////////////////////
+
+       
+
+        /////////////////////////////////////////////////////        // MOVE TECHNICIAN MARKER
+        /////////////////////////////////////////////////////
+
+        technicianMarker.setLatLng([lat, lng]);
+    
+
+        /////////////////////////////////////////////////////
+        // UPDATE MAP
+        /////////////////////////////////////////////////////
+
+     if (!window.mapCentered) {
+
+    map.panTo([lat, lng]);
+
+    window.mapCentered = true;
+
+}
+
+        /////////////////////////////////////////////////////
+        // UPDATE TEXT
+        /////////////////////////////////////////////////////
+
+    },
+
+    function(error) {
+
+        console.error(
+            "❌ GPS ERROR:",
+            error
+        );
+
+    },
+
+    {
+
+        enableHighAccuracy: true,
+
+        maximumAge: 1000,
+
+        timeout: 10000
+    }
+
+);
+
+</script>
+
+{% endblock %}

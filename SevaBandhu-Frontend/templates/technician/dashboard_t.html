@@ -1,0 +1,984 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Technician Dashboard{% endblock %}
+
+{% block content %}
+
+<script>
+
+console.log("🔥 JS LOADED");
+
+// Get the current technician's service category
+let technicianServiceCategory = "{{ technician.service_category }}";
+console.log("📋 Technician service category:", technicianServiceCategory);
+
+function openProfileModal() {
+    document.getElementById('profileModal').classList.add('show');
+}
+
+function closeProfileModal() {
+    document.getElementById('profileModal').classList.remove('show');
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    var modal = document.getElementById('profileModal');
+    if (event.target == modal) {
+        modal.classList.remove('show');
+    }
+}
+
+// WebSocket connection
+const socket = new WebSocket(
+    "ws://" + window.location.host + "/ws/requests/"
+);
+
+socket.onopen = function() {
+    console.log("WebSocket Connected ✅");
+};
+
+console.log("🧠 Technician Service:", technicianServiceCategory);
+
+socket.onmessage = function(event) {
+
+    try {
+
+        console.log("🔥 RAW WS:", event.data);
+
+        const data = JSON.parse(event.data);
+
+        console.log("📩 WS EVENT:", data);
+
+        // 🔥 NEW REQUEST
+        if (data.content && data.content.type === "new_request") {
+
+            addNotificationCard(data.content);
+        }
+
+        // 🔥 REMOVE REQUEST
+        else if (data.type === "notification_removed") {
+
+            removeNotificationByRequest(data.request_id);
+        }
+
+    } catch (e) {
+
+        console.error("❌ WebSocket Error:", e);
+
+    }
+};
+
+socket.onerror = function(error) {
+    console.log("WebSocket Error:", error);
+};
+
+socket.onclose = function(event) {
+    console.log("WebSocket closed:", event.code);
+};
+
+function acceptRequest(requestId, notificationId) {
+
+    console.log("🚀 Accept clicked:", requestId, notificationId);
+
+    fetch(`/technician/accept-request/${requestId}/`, {
+
+        method: "POST",
+
+        headers: {
+            "X-CSRFToken": getCSRFToken(),
+            "Content-Type": "application/json"
+        }
+
+    })
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        console.log("✅ RESPONSE:", data);
+
+        if (data.status === "success") {
+
+            const card = document.getElementById(`notification-${notificationId}`);
+
+            if (card) {
+                card.remove();
+            }
+
+            incrementDashboardCounts();
+
+            alert("✅ Request Accepted");
+
+        } else {
+
+            alert("❌ " + (data.message || "Already taken"));
+
+        }
+
+    })
+
+    .catch(err => {
+
+        console.error("❌ ERROR:", err);
+
+    });
+}
+
+function incrementDashboardCounts() {
+
+    const total = document.getElementById('totalJobsCount');
+    const assigned = document.getElementById('assignedJobsCount');
+
+    if (total) {
+        total.textContent = parseInt(total.textContent) + 1;
+    }
+
+    if (assigned) {
+        assigned.textContent = parseInt(assigned.textContent) + 1;
+    }
+}
+
+function dismissNotification(notificationId) {
+
+    fetch(`/technician/dismiss-notification/${notificationId}/`, {
+
+        method: "POST",
+
+        headers: {
+            "X-CSRFToken": getCSRFToken(),
+            "Content-Type": "application/json"
+        }
+
+    })
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        if (data.status === "success") {
+
+            const card = document.getElementById(`notification-${notificationId}`);
+
+            if (card) {
+                card.remove();
+            }
+
+        }
+
+    })
+
+    .catch(err => {
+
+        console.error(err);
+
+    });
+}
+
+function addNotificationCard(data) {
+
+    console.log("🔥 ADDING CARD:", data);
+
+    const container = document.getElementById('notificationContainer');
+
+    if (!container) {
+        console.error("❌ notificationContainer NOT FOUND");
+        return;
+    }
+
+    const card = document.createElement('div');
+
+    card.className = "notification-card";
+
+    card.id = `notification-live-${data.request_id}`;
+
+    card.innerHTML = `
+        <div class="notification-title">
+            ${data.service_category}
+        </div>
+
+        <div class="notification-info">
+            <p><b>City:</b> ${data.city}</p>
+            <p><b>Date:</b> ${data.preferred_date}</p>
+            <p><b>Time:</b> ${data.preferred_time}</p>
+            <p><b>Priority:</b> ${data.priority}</p>
+        </div>
+
+        <div class="notification-actions">
+
+            <button
+                onclick="location.reload()"
+                class="notification-btn btn-view">
+
+                View
+
+            </button>
+
+        </div>
+    `;
+
+    container.prepend(card);
+
+    updateNotificationCount();
+}
+
+function updateNotificationCount() {
+
+    const cards = document.querySelectorAll('.notification-card');
+
+    const countElement = document.getElementById('notificationCount');
+
+    if (countElement) {
+
+        countElement.textContent = cards.length;
+    }
+}
+
+function removeNotificationByRequest(requestId) {
+
+    const buttons = document.querySelectorAll('[data-request-id]');
+
+    buttons.forEach(button => {
+
+        if (button.dataset.requestId == requestId) {
+
+            const card = button.closest('.notification-card');
+
+            if (card) {
+                card.remove();
+            }
+        }
+    });
+}
+
+function getCSRFToken() {
+    return document.cookie
+        .split('; ')
+        .find(row => row.startsWith('csrftoken='))
+        ?.split('=')[1];
+}
+
+function getCookie(name) {
+
+    let cookieValue = null;
+
+    if (document.cookie && document.cookie !== '') {
+
+        const cookies = document.cookie.split(';');
+
+        for (let i = 0; i < cookies.length; i++) {
+
+            const cookie = cookies[i].trim();
+
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+
+                break;
+            }
+        }
+    }
+
+    return cookieValue;
+}
+
+console.log("🔥 THIS FILE IS LOADED");
+
+</script>
+
+<style>
+
+/* ===== Dashboard ===== */
+
+.tech-dashboard{
+padding:20px;
+max-width:1300px;
+margin:auto;
+}
+
+/* ===== Header ===== */
+
+.page-header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:35px;
+flex-wrap:wrap;
+gap:20px;
+}
+
+.page-header h2{
+font-size:34px;
+font-weight:800;
+color:#111827;
+letter-spacing:-1px;
+margin-bottom:6px;
+}
+
+.page-header p{
+color:#6b7280;
+font-size:15px;
+line-height:1.6;
+}
+
+/* ===== Profile Button ===== */
+
+.profile-icon-btn{
+width:52px;
+height:52px;
+border-radius:50%;
+background:#2563eb;
+color:white;
+border:none;
+cursor:pointer;
+font-size:22px;
+display:flex;
+align-items:center;
+justify-content:center;
+transition:0.25s ease;
+box-shadow:0 6px 18px rgba(37,99,235,0.18);
+}
+
+.profile-icon-btn:hover{
+background:#1d4ed8;
+transform:translateY(-2px);
+}
+
+/* ===== Modal ===== */
+
+.modal{
+display:none;
+position:fixed;
+z-index:1000;
+left:0;
+top:0;
+width:100%;
+height:100%;
+background:rgba(15,23,42,0.45);
+backdrop-filter:blur(4px);
+padding:20px;
+}
+
+.modal.show{
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+.modal-content{
+background:white;
+padding:34px;
+border-radius:28px;
+width:100%;
+max-width:560px;
+box-shadow:0 20px 40px rgba(0,0,0,0.12);
+animation:fadeUp 0.3s ease;
+border:1px solid #e5e7eb;
+}
+
+@keyframes fadeUp{
+from{
+opacity:0;
+transform:translateY(20px);
+}
+to{
+opacity:1;
+transform:translateY(0);
+}
+}
+
+.modal-header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:24px;
+padding-bottom:18px;
+border-bottom:1px solid #e5e7eb;
+}
+
+.modal-header h3{
+font-size:24px;
+font-weight:700;
+color:#111827;
+}
+
+.close-modal{
+background:none;
+border:none;
+font-size:28px;
+color:#6b7280;
+cursor:pointer;
+}
+
+.close-modal:hover{
+color:#111827;
+}
+
+/* ===== Profile Fields ===== */
+
+.profile-field{
+margin-bottom:18px;
+}
+
+.profile-field label{
+font-weight:600;
+color:#374151;
+display:block;
+margin-bottom:6px;
+font-size:14px;
+}
+
+.profile-field value{
+display:block;
+padding:14px 16px;
+background:#f8fafc;
+border-radius:14px;
+font-size:14px;
+color:#111827;
+border:1px solid #e5e7eb;
+}
+
+/* ===== Badges ===== */
+
+.incomplete-badge,
+.complete-badge{
+padding:12px 16px;
+border-radius:14px;
+font-size:14px;
+font-weight:600;
+margin-bottom:22px;
+}
+
+.incomplete-badge{
+background:#fef3c7;
+color:#92400e;
+}
+
+.complete-badge{
+background:#dcfce7;
+color:#166534;
+}
+
+/* ===== Modal Buttons ===== */
+
+.modal-buttons{
+display:flex;
+gap:12px;
+margin-top:28px;
+padding-top:22px;
+border-top:1px solid #e5e7eb;
+flex-wrap:wrap;
+}
+
+.modal-btn{
+padding:13px 18px;
+border:none;
+border-radius:14px;
+cursor:pointer;
+font-weight:600;
+transition:0.25s ease;
+flex:1;
+font-size:14px;
+font-family:'Inter',sans-serif;
+}
+
+.modal-btn-primary{
+background:#2563eb;
+color:white;
+}
+
+.modal-btn-primary:hover{
+background:#1d4ed8;
+}
+
+.modal-btn-secondary{
+background:#f3f4f6;
+color:#111827;
+}
+
+.modal-btn-secondary:hover{
+background:#e5e7eb;
+}
+
+/* ===== Action Buttons ===== */
+
+.action-buttons{
+display:flex;
+gap:16px;
+margin-bottom:35px;
+flex-wrap:wrap;
+}
+
+.action-btn{
+padding:14px 22px;
+border-radius:16px;
+text-decoration:none;
+font-weight:600;
+font-size:14px;
+color:white;
+transition:0.25s ease;
+box-shadow:0 6px 18px rgba(0,0,0,0.06);
+}
+
+.btn-jobs{
+background:#2563eb;
+}
+
+.btn-status{
+background:#111827;
+}
+
+.action-btn:hover{
+transform:translateY(-2px);
+opacity:0.95;
+}
+
+/* ===== Summary Cards ===== */
+
+.card-grid{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:22px;
+margin-bottom:35px;
+}
+
+.summary-card{
+background:white;
+border-radius:24px;
+padding:28px;
+border:1px solid #e5e7eb;
+box-shadow:0 8px 24px rgba(0,0,0,0.05);
+transition:0.3s ease;
+}
+
+.summary-card:hover{
+transform:translateY(-5px);
+box-shadow:0 16px 32px rgba(0,0,0,0.08);
+}
+
+.summary-card h6{
+color:#6b7280;
+font-size:14px;
+margin-bottom:12px;
+font-weight:600;
+}
+
+.summary-card h3{
+font-size:36px;
+font-weight:800;
+letter-spacing:-1px;
+}
+
+.total{ color:#2563eb; }
+.pending{ color:#f59e0b; }
+.ongoing{ color:#8b5cf6; }
+.completed{ color:#22c55e; }
+
+/* ===== Notifications ===== */
+
+.notification-wrapper{
+background:white;
+border-radius:24px;
+padding:28px;
+border:1px solid #e5e7eb;
+box-shadow:0 8px 24px rgba(0,0,0,0.05);
+}
+
+.notification-header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:24px;
+gap:15px;
+flex-wrap:wrap;
+}
+
+.notification-header h2{
+font-size:24px;
+font-weight:700;
+color:#111827;
+}
+
+.notification-count{
+background:#2563eb;
+color:white;
+padding:6px 14px;
+border-radius:999px;
+font-size:13px;
+font-weight:700;
+}
+
+.notification-container{
+display:flex;
+flex-direction:column;
+gap:18px;
+}
+
+.notification-card{
+border:1px solid #e5e7eb;
+border-left:5px solid #2563eb;
+border-radius:20px;
+padding:22px;
+background:#f8fafc;
+transition:0.25s ease;
+}
+
+.notification-card:hover{
+transform:translateY(-2px);
+box-shadow:0 10px 24px rgba(0,0,0,0.05);
+}
+
+.notification-title{
+font-size:20px;
+font-weight:700;
+color:#111827;
+margin-bottom:12px;
+}
+
+.notification-info p{
+margin:8px 0;
+color:#4b5563;
+font-size:14px;
+line-height:1.6;
+}
+
+.notification-actions{
+display:flex;
+gap:12px;
+margin-top:20px;
+flex-wrap:wrap;
+}
+
+.notification-btn{
+padding:12px 16px;
+border:none;
+border-radius:14px;
+cursor:pointer;
+font-weight:600;
+font-size:14px;
+transition:0.25s ease;
+font-family:'Inter',sans-serif;
+}
+
+.btn-accept{
+background:#16a34a;
+color:white;
+}
+
+.btn-dismiss{
+background:#ef4444;
+color:white;
+}
+
+.btn-view{
+background:#2563eb;
+color:white;
+}
+
+.notification-btn:hover{
+transform:translateY(-1px);
+opacity:0.95;
+}
+
+/* ===== Empty Notification ===== */
+
+.empty-notification{
+color:#6b7280;
+font-size:15px;
+padding:10px 0;
+}
+
+/* ===== Responsive ===== */
+
+@media(max-width:1000px){
+
+.card-grid{
+grid-template-columns:repeat(2,1fr);
+}
+
+}
+
+@media(max-width:768px){
+
+.page-header{
+align-items:flex-start;
+}
+
+.page-header h2{
+font-size:28px;
+}
+
+.modal-content{
+padding:24px;
+border-radius:22px;
+}
+
+}
+
+@media(max-width:600px){
+
+.card-grid{
+grid-template-columns:1fr;
+}
+
+.notification-actions{
+flex-direction:column;
+}
+
+.modal-buttons{
+flex-direction:column;
+}
+
+}
+
+</style>
+
+<div class="tech-dashboard">
+
+<!-- Header -->
+<div class="page-header">
+
+    <div>
+        <h2>Technician Dashboard</h2>
+        <p>Monitor your jobs, progress and assignments efficiently.</p>
+    </div>
+
+    <div>
+        <button class="profile-icon-btn" onclick="openProfileModal()">
+            👤
+        </button>
+    </div>
+
+</div>
+
+<!-- Profile Modal -->
+<div id="profileModal" class="modal">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h3>My Profile</h3>
+
+            <button class="close-modal" onclick="closeProfileModal()">
+                ×
+            </button>
+
+        </div>
+
+        {% if technician.profile_completed %}
+
+            <div class="complete-badge">
+                ✓ Profile Complete
+            </div>
+
+            <div class="profile-field">
+                <label>Name</label>
+                <value>{{ technician.username }}</value>
+            </div>
+
+            <div class="profile-field">
+                <label>Email</label>
+                <value>{{ technician.email }}</value>
+            </div>
+
+            <div class="profile-field">
+                <label>Contact</label>
+                <value>{{ technician.contact }}</value>
+            </div>
+
+            <div class="profile-field">
+                <label>Service Category</label>
+                <value>{{ technician.service_category }}</value>
+            </div>
+
+            <div class="profile-field">
+                <label>Years of Experience</label>
+                <value>{{ technician.years_of_experience }} years</value>
+            </div>
+
+            <div class="profile-field">
+                <label>Working Cities</label>
+                <value>{{ technician.working_locations }}</value>
+            </div>
+
+            <div class="modal-buttons">
+
+                <button class="modal-btn modal-btn-secondary" onclick="closeProfileModal()">
+                    Close
+                </button>
+
+            </div>
+
+        {% else %}
+
+            <div class="incomplete-badge">
+                ⚠ Profile Incomplete
+            </div>
+
+            <div class="profile-field">
+                <label>Name</label>
+                <value>{{ technician.username }}</value>
+            </div>
+
+            <div class="profile-field">
+                <label>Email</label>
+                <value>{{ technician.email }}</value>
+            </div>
+
+            <div class="profile-field">
+                <label>Contact</label>
+                <value>{{ technician.contact }}</value>
+            </div>
+
+            <p style="color:#6b7280;font-size:14px;line-height:1.7;margin-top:12px;">
+                Please complete your profile to start accepting jobs.
+            </p>
+
+            <div class="modal-buttons">
+
+                <a href="{% url 'technician_complete_profile' %}" style="text-decoration:none;flex:1;">
+
+                    <button class="modal-btn modal-btn-primary" style="width:100%;">
+                        Complete Profile
+                    </button>
+
+                </a>
+
+                <button class="modal-btn modal-btn-secondary" onclick="closeProfileModal()">
+                    Cancel
+                </button>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+<!-- Action Buttons -->
+<div class="action-buttons">
+
+<a href="{% url 'technician_my_jobs' %}" class="action-btn btn-jobs">
+    My Jobs
+</a>
+
+<a href="{% url 'technician_logout' %}" class="action-btn btn-status">
+    Logout
+</a>
+
+</div>
+
+<!-- Summary Cards -->
+
+<div class="card-grid">
+
+<div class="summary-card">
+<h6>Total Jobs</h6>
+<h3 class="total">
+    <span id="totalJobsCount">{{ total_jobs }}</span>
+</h3>
+</div>
+
+<div class="summary-card">
+<h6>Assigned Jobs</h6>
+<h3 class="pending">
+    <span id="assignedJobsCount">{{ pending_jobs }}</span>
+</h3>
+</div>
+
+<div class="summary-card">
+<h6>Ongoing Jobs</h6>
+<h3 class="ongoing">
+    <span id="ongoingJobsCount">{{ in_progress_jobs }}</span>
+</h3>
+</div>
+
+<div class="summary-card">
+<h6>Completed Jobs</h6>
+<h3 class="completed">
+    <span id="completedJobsCount">{{ completed_jobs }}</span>
+</h3>
+</div>
+
+</div>
+
+<!-- Notifications -->
+
+<div class="notification-wrapper">
+
+    <div class="notification-header">
+
+        <h2>
+            Notifications (<span id="notificationCount">{{ notifications|length }}</span>)
+        </h2>
+
+        <span class="notification-count">
+            {{ notifications|length }}
+        </span>
+
+    </div>
+
+    {% if notifications %}
+
+        <div id="notificationContainer" class="notification-container">
+
+        {% for notification in notifications %}
+
+            <div
+                id="notification-{{ notification.id }}"
+                class="notification-card">
+
+                <div class="notification-title">
+                    {{ notification.title }}
+                </div>
+
+                <div class="notification-info">
+
+                    <p>
+                        {{ notification.message }}
+                    </p>
+
+                </div>
+
+                <div class="notification-actions">
+
+                   <button
+                      data-request-id="{{ notification.service_request.id }}"
+                      onclick="acceptRequest('{{ notification.service_request.id }}', '{{ notification.id }}')"
+                      class="notification-btn btn-accept">
+
+                      Accept
+
+                   </button>
+
+                    <button
+                        onclick="dismissNotification('{{ notification.id }}')"
+                        class="notification-btn btn-dismiss">
+
+                        Dismiss
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <p class="empty-notification">
+            No new notifications.
+        </p>
+
+    {% endif %}
+
+</div>
+
+</div>
+
+{% endblock %}

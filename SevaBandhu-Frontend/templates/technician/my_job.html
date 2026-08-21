@@ -1,0 +1,530 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Jobs{% endblock %}
+
+{% block content %}
+
+<style>
+
+.my-jobs{
+padding:20px;
+}
+
+/* ===== Header ===== */
+
+.page-header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:35px;
+flex-wrap:wrap;
+gap:18px;
+}
+
+.page-header h2{
+font-size:32px;
+font-weight:800;
+color:#111827;
+letter-spacing:-0.8px;
+margin-bottom:6px;
+}
+
+.page-header p{
+color:#6b7280;
+font-size:15px;
+line-height:1.6;
+}
+
+.back-btn{
+padding:12px 18px;
+border-radius:14px;
+background:#2563eb;
+color:white;
+text-decoration:none;
+font-weight:600;
+font-size:14px;
+transition:0.25s ease;
+box-shadow:0 4px 14px rgba(37,99,235,0.18);
+}
+
+.back-btn:hover{
+background:#1d4ed8;
+transform:translateY(-2px);
+}
+
+/* ===== Jobs Grid ===== */
+
+.jobs-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(340px,1fr));
+gap:24px;
+}
+
+/* ===== Job Cards ===== */
+
+.job-card{
+background:white;
+border-radius:24px;
+padding:28px;
+border:1px solid #e5e7eb;
+box-shadow:0 8px 24px rgba(0,0,0,0.05);
+transition:0.3s ease;
+position:relative;
+overflow:hidden;
+}
+
+.job-card:hover{
+transform:translateY(-5px);
+box-shadow:0 16px 32px rgba(0,0,0,0.08);
+}
+
+.job-card-assigned{
+border-top:5px solid #2563eb;
+}
+
+.job-card-in-progress{
+border-top:5px solid #f59e0b;
+}
+
+.job-card-completed{
+border-top:5px solid #22c55e;
+}
+
+.job-card-pending{
+border-top:5px solid #9ca3af;
+}
+
+/* ===== Header ===== */
+
+.job-header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:20px;
+gap:10px;
+}
+
+.job-id{
+font-size:18px;
+font-weight:700;
+color:#111827;
+}
+
+/* ===== Status ===== */
+
+.status{
+padding:7px 14px;
+border-radius:999px;
+font-size:12px;
+font-weight:700;
+display:inline-flex;
+align-items:center;
+justify-content:center;
+}
+
+.pending{
+background:#dbeafe;
+color:#1d4ed8;
+}
+
+.ongoing{
+background:#fef3c7;
+color:#b45309;
+}
+
+.completed{
+background:#dcfce7;
+color:#166534;
+}
+
+/* ===== Job Info ===== */
+
+.job-info{
+margin-top:10px;
+}
+
+.job-info p{
+margin:10px 0;
+font-size:14px;
+color:#4b5563;
+line-height:1.7;
+}
+
+.job-info span{
+font-weight:600;
+color:#111827;
+}
+
+/* ===== Actions ===== */
+
+.job-actions{
+margin-top:24px;
+display:flex;
+gap:12px;
+flex-wrap:wrap;
+}
+
+.action-btn{
+flex:1;
+padding:13px 16px;
+border-radius:14px;
+font-size:14px;
+font-weight:600;
+text-decoration:none;
+border:none;
+transition:0.25s ease;
+cursor:pointer;
+display:flex;
+align-items:center;
+justify-content:center;
+gap:8px;
+font-family:'Inter',sans-serif;
+}
+
+.btn-status{
+background:#111827;
+color:white;
+}
+
+.btn-status:hover{
+background:#1f2937;
+transform:translateY(-1px);
+}
+
+.btn-location{
+background:#2563eb;
+color:white;
+}
+
+.btn-location:hover{
+background:#1d4ed8;
+transform:translateY(-1px);
+}
+
+/* ===== Empty State ===== */
+
+.empty-state{
+grid-column:1/-1;
+text-align:center;
+padding:80px 20px;
+background:white;
+border-radius:24px;
+border:1px solid #e5e7eb;
+box-shadow:0 6px 20px rgba(0,0,0,0.04);
+}
+
+.empty-state h3{
+font-size:24px;
+font-weight:700;
+color:#111827;
+margin-bottom:10px;
+}
+
+.empty-state p{
+color:#6b7280;
+font-size:15px;
+line-height:1.7;
+margin-bottom:24px;
+}
+
+/* ===== Responsive ===== */
+
+@media(max-width:768px){
+
+.page-header{
+align-items:flex-start;
+}
+
+.page-header h2{
+font-size:28px;
+}
+
+.job-card{
+padding:22px;
+border-radius:20px;
+}
+
+.job-actions{
+flex-direction:column;
+}
+
+}
+
+</style>
+
+<div class="my-jobs">
+
+<input
+    type="hidden"
+    name="csrfmiddlewaretoken"
+    value="{{ csrf_token }}"
+>
+
+    <!-- Header -->
+    <div class="page-header">
+
+        <div>
+            <h2>My Assigned Jobs</h2>
+            <p>View and manage all your assigned service requests efficiently.</p>
+        </div>
+
+        <a href="{% url 'technician_dashboard' %}" class="back-btn">
+            ← Dashboard
+        </a>
+
+    </div>
+
+    <!-- Jobs Grid -->
+    <div class="jobs-grid">
+
+    {% if my_jobs %}
+
+        {% for job in my_jobs %}
+
+        <div class="job-card job-card-{% if job.status == 'Assigned' %}assigned{% elif job.status == 'In Progress' %}in-progress{% elif job.status == 'Completed' %}completed{% else %}pending{% endif %}">
+            
+            <div class="job-header">
+
+                <div class="job-id">
+                    Request #{{ job.id }}
+                </div>
+
+                <span class="status {% if job.status == 'Assigned' %}pending{% elif job.status == 'In Progress' %}ongoing{% elif job.status == 'Completed' %}completed{% else %}pending{% endif %}">
+                    {{ job.status }}
+                </span>
+
+            </div>
+
+            <div class="job-info">
+
+                <p><span>Service:</span> {{ job.service_detail.service_category }}</p>
+
+                <p><span>Customer:</span> {{ job.customer_username }}</p>
+
+                <p><span>Date:</span> {{ job.service_detail.preferred_service_date }}</p>
+
+                <p><span>Time:</span> {{ job.service_detail.preferred_time_slot }}</p>
+
+                <p><span>City:</span> {{ job.service_address.city }}</p>
+
+                <p><span>Address:</span> {{ job.service_address.street_area }}</p>
+
+                <p><span>Priority:</span> {{ job.service_detail.priority }}</p>
+
+                <p><span>Status:</span> {{ job.status }}</p>
+
+            </div>
+
+            <div class="job-actions">
+
+                <!-- UPDATE STATUS -->
+                <a href="{% url 'technician_update_status' %}"
+                   class="action-btn btn-status">
+
+                    Update Status
+
+                </a>
+
+                <!-- START LIVE TRACKING -->
+                <button
+                    id="journey-btn-{{ job.id }}"
+                    onclick="startJourney('{{ job.id }}')"
+                    class="action-btn btn-location">
+
+                    🚀 Start Journey
+
+                </button>
+        <a href="{% url 'technician_navigation' job.id %}">
+
+        <button
+        style="
+        background:#16a34a;
+        color:white;
+        padding:10px 20px;
+        border:none;
+        border-radius:8px;
+        cursor:pointer;
+        margin-left:10px;
+">
+
+🗺️ Open Navigation
+
+</button>
+
+</a>
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    {% else %}
+
+        <div class="empty-state">
+
+            <h3>No jobs assigned yet</h3>
+
+            <p>
+                Wait for admin to assign you some work and your jobs will appear here.
+            </p>
+
+            <a href="{% url 'technician_dashboard' %}" class="back-btn">
+                ← Back to Dashboard
+            </a>
+
+        </div>
+
+    {% endif %}
+
+    </div>
+
+</div>
+
+<script>
+
+/////////////////////////////////////////////////////
+// WEBSOCKET
+/////////////////////////////////////////////////////
+
+let trackingWatchId = null;
+let trackingSocket = null;
+let trackingStarted = false;
+
+function startJourney(jobId) {
+
+    fetch(`/technician/start-tracking/${jobId}/`, {
+
+        method: "POST",
+
+        headers: {
+            "X-CSRFToken": getCSRFToken(),
+            "Content-Type": "application/json"
+        }
+
+    })
+
+    .then(res => res.json())
+
+    .then(data => {
+
+    if (data.status === "success") {
+
+        alert("🚀 Journey Started");
+
+        /////////////////////////////////////////////////////
+        // FORCE GPS ACCESS FIRST
+        /////////////////////////////////////////////////////
+
+        navigator.geolocation.getCurrentPosition(
+
+            (position) => {
+
+                console.log(
+                    "✅ GPS PERMISSION GRANTED"
+                );
+
+                /////////////////////////////////////////////////////
+                // NOW START LIVE TRACKING
+                /////////////////////////////////////////////////////
+
+                startLiveTracking(jobId);
+
+            },
+
+            (error) => {
+
+                console.error(
+                    "❌ GPS PERMISSION DENIED:",
+                    error
+                );
+
+                alert(
+                    "Please allow location permission."
+                );
+            }
+
+        );
+
+    }
+
+    });
+
+}
+
+function startLiveTracking(jobId) {
+
+    const wsProtocol =
+    window.location.protocol === "https:"
+    ? "wss://"
+    : "ws://";
+
+trackingSocket = new WebSocket(
+    wsProtocol +
+    window.location.host +
+    `/ws/tracking/${jobId}/`
+);
+
+    trackingSocket.onopen = function() {
+
+        console.log("✅ TRACKING SOCKET CONNECTED");
+
+        trackingWatchId = navigator.geolocation.watchPosition(
+
+            (position) => {
+
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+
+                console.log("📍 LIVE LOCATION:", lat, lng);
+
+                if (trackingSocket.readyState !== WebSocket.OPEN) {
+
+                    console.log("❌ SOCKET NOT READY");
+
+                    return;
+                }
+
+                trackingSocket.send(JSON.stringify({
+
+                    type: 'live_location',
+
+                    request_id: jobId,
+
+                    latitude: lat,
+
+                    longitude: lng
+
+                }));
+
+            },
+
+            (error) => console.error("❌ GPS ERROR:", error),
+
+            {
+                enableHighAccuracy: true,
+                maximumAge: 1000,
+                timeout: 10000
+            }
+
+        );
+
+    };
+
+}
+
+/////////////////////////////////////////////////////
+// GET CSRF TOKEN
+/////////////////////////////////////////////////////
+
+function getCSRFToken() {
+
+    return document.querySelector(
+        '[name=csrfmiddlewaretoken]'
+    ).value;
+
+}
+
+</script>
+
+{% endblock %}

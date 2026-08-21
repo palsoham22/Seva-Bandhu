@@ -1,0 +1,365 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+/* ===============================
+   Customer Dashboard Styles
+================================ */
+
+.dashboard-wrapper{
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+}
+
+/* header section */
+.dashboard-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:20px;
+    flex-wrap:wrap;
+}
+
+.dashboard-header h1{
+    margin-bottom:6px;
+}
+
+.dashboard-header p{
+    color:#64748b;
+    font-size:14px;
+}
+
+/* quick actions */
+.quick-actions{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+}
+
+/* stat cards */
+.stats-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:18px;
+}
+
+.stat-card{
+    background:white;
+    padding:20px;
+    border-radius:8px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.08);
+    border-left:5px solid #2563eb;
+}
+
+.stat-card.secondary{
+    border-left-color:#0f766e;
+}
+
+.stat-card.warning{
+    border-left-color:#f59e0b;
+}
+
+.stat-card.success{
+    border-left-color:#16a34a;
+}
+
+.stat-card h4{
+    font-size:14px;
+    color:#64748b;
+    margin-bottom:6px;
+}
+
+.stat-card span{
+    font-size:28px;
+    font-weight:600;
+    color:#1e293b;
+}
+
+/* layout split */
+.dashboard-grid{
+    display:grid;
+    grid-template-columns:2fr 1fr;
+    gap:20px;
+}
+
+@media(max-width:900px){
+    .dashboard-grid{
+        grid-template-columns:1fr;
+    }
+}
+
+/* table */
+.table-box table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:10px;
+}
+
+.table-box th,
+.table-box td{
+    padding:10px;
+    border-bottom:1px solid #e5e7eb;
+    font-size:14px;
+    text-align:left;
+}
+
+.table-box th{
+    background:#f8fafc;
+    color:#334155;
+}
+
+/* status badges */
+.status-badge{
+    padding:4px 10px;
+    border-radius:12px;
+    font-size:12px;
+    font-weight:600;
+    display:inline-block;
+}
+
+.status-pending{background:#fef3c7;color:#92400e;}
+.status-accepted{background:#e0f2fe;color:#0369a1;}
+.status-in-progress{background:#ede9fe;color:#5b21b6;}
+.status-completed{background:#dcfce7;color:#166534;}
+.status-cancelled{background:#fee2e2;color:#991b1b;}
+.status-assigned{background:#e0f2fe;color:#0369a1;}
+.status-progress{background:#ede9fe;color:#5b21b6;}
+.status-complete{background:#dcfce7;color:#166534;}
+
+/* profile card */
+.profile-card{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.profile-circle{
+    width:48px;
+    height:48px;
+    border-radius:50%;
+    background:#2563eb;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:white;
+    font-weight:600;
+    font-size:18px;
+}
+
+/* notifications */
+.notification-list{
+    list-style:none;
+    padding-left:0;
+    margin-top:10px;
+}
+
+.notification-list li{
+    padding:10px;
+    border-bottom:1px solid #e5e7eb;
+    font-size:14px;
+    color:#475569;
+}
+
+/* help card */
+.help-card ul{
+    margin-left:18px;
+    line-height:1.7;
+    font-size:14px;
+    color:#475569;
+}
+</style>
+
+
+<div class="dashboard-wrapper">
+
+    <!-- Header -->
+    <div class="card dashboard-header">
+
+        <div>
+            <h1>Customer Dashboard</h1>
+            <p>Manage your service requests and track technician activities.</p>
+        </div>
+
+        <div class="quick-actions">
+            <a href="{% url 'customer_create_request' %}" class="btn">New Request</a>
+            <a href="{% url 'customer_logout' %}" class="btn" style="background: #ef4444;">Logout</a>
+        </div>
+
+    </div>
+
+
+    <!-- Stats -->
+    <div class="stats-grid">
+
+        <div class="stat-card">
+            <h4>Total Requests</h4>
+            <span>{{ total_requests }}</span>
+        </div>
+
+        <div class="stat-card secondary">
+            <h4>Pending Requests</h4>
+            <span>{{ pending_requests }}</span>
+        </div>
+
+        <div class="stat-card warning">
+            <h4>In Progress</h4>
+            <span>{{ in_progress_requests }}</span>
+        </div>
+
+        <div class="stat-card success">
+            <h4>Completed</h4>
+            <span>{{ completed_requests }}</span>
+        </div>
+
+    </div>
+
+
+    <!-- Main Grid -->
+    <div class="dashboard-grid">
+
+        <!-- Left: recent requests -->
+        <div class="card table-box">
+
+            <h3>Recent Service Requests</h3>
+
+            {% if service_requests %}
+            <table>
+                <tr>
+                    <th>Request ID</th>
+                    <th>Service Type</th>
+                    <th>Technician</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                </tr>
+
+                {% for item in service_requests %}
+                <tr>
+                    <td>REQ-{{ item.request.id }}</td>
+                    <td>{{ item.request.service_category }}</td>
+                    <td>
+                        {% if item.technician %}
+                        {{ item.technician.username }}
+                        {% else %}
+                        <span style="color: #999;">Not Assigned</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="status-badge status-{{ item.request.status|lower|slugify }}">
+                            {{ item.request.status }}
+                        </span>
+                    </td>
+                    <td>{{ item.request.preferred_service_date|date:"d M Y" }}</td>
+                    <td>
+                        <a href="{% url 'customer_track_request' %}" class="btn">Track</a>
+                    </td>
+                </tr>
+                {% endfor %}
+
+            </table>
+            {% else %}
+            <p style="color: #64748b; padding: 20px; text-align: center;">
+                No service requests yet. <a href="{% url 'customer_create_request' %}">Create your first request.</a>
+            </p>
+            {% endif %}
+
+        </div>
+
+
+        <!-- Right column -->
+        <div style="display:flex; flex-direction:column; gap:20px;">
+
+            <!-- profile -->
+            <div class="card">
+
+                <div class="profile-card">
+                    <div class="profile-circle">{{ customer.username|upper|first }}</div>
+                    <div>
+                        <strong>{{ customer.username }}</strong><br>
+                        <span style="font-size:13px;color:#64748b;">Customer Account</span>
+                    </div>
+                </div>
+
+                <hr style="margin:15px 0;">
+
+                <p style="font-size:14px;color:#475569;">
+                    <strong>Email:</strong> {{ customer.email }}<br>
+                    <strong>Contact:</strong> {{ customer.contact }}
+                </p>
+
+            </div>
+
+            <!-- Technician History -->
+            <div class="card">
+                <h3>Technicians Who Worked</h3>
+
+                {% if technicians %}
+                <ul class="notification-list">
+                    {% for technician in technicians %}
+                    <li>
+                        <strong>{{ technician.username }}</strong><br>
+                        <span style="font-size: 12px; color: #64748b;">
+                            Contact: {{ technician.contact }}
+                        </span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p style="font-size:14px;color:#64748b;padding:10px;text-align:center;">
+                    No technicians assigned yet.
+                </p>
+                {% endif %}
+            </div>
+
+            <!-- notifications -->
+            <div class="card">
+
+                <h3>Recent Notifications</h3>
+
+                {% if service_requests %}
+                <ul class="notification-list">
+                    {% for item in service_requests %}
+                    <li>
+                        {% if item.request.status == 'Pending' %}
+                        Your {{ item.request.service_category }} request (REQ-{{ item.request.id }}) is pending.
+                        {% elif item.request.status == 'In Progress' %}
+                        Your {{ item.request.service_category }} request (REQ-{{ item.request.id }}) is in progress.
+                        {% elif item.request.status == 'Completed' %}
+                        Your {{ item.request.service_category }} request (REQ-{{ item.request.id }}) has been completed successfully.
+                        {% else %}
+                        {{ item.request.service_category }} request (REQ-{{ item.request.id }}) - {{ item.request.status }}
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p style="font-size:14px;color:#64748b;padding:10px;text-align:center;">
+                    No notifications yet. Create your first service request!
+                </p>
+                {% endif %}
+
+            </div>
+
+            <!-- help -->
+            <div class="card help-card">
+
+                <h3>Need Help?</h3>
+
+                <ul>
+                    <li>Create a new service request using the New Request button.</li>
+                    <li>Track real-time job status from the request list.</li>
+                    <li>Contact the assigned technician if required.</li>
+                    <li>For urgent services, mark priority as High or Emergency.</li>
+                </ul>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

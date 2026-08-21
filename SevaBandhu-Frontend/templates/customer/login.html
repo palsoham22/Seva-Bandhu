@@ -1,307 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Customer Login</title>
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
-<style>
-
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
-
-body{
-
-    min-height:100vh;
-
-    display:flex;
-    justify-content:center;
-    align-items:center;
-
-    padding:24px;
-
-    background:#f8fafc;
-
-    font-family:'Inter',sans-serif;
-}
-
-/* ===== Main Container ===== */
-
-.login-container{
-
-    width:100%;
-    max-width:460px;
-}
-
-/* ===== Heading ===== */
-
-h2{
-
-    color:#111827;
-
-    text-align:center;
-
-    font-size:32px;
-
-    font-weight:800;
-
-    letter-spacing:-1px;
-
-    margin-bottom:12px;
-}
-
-.subtitle{
-
-    text-align:center;
-
-    color:#6b7280;
-
-    font-size:15px;
-
-    line-height:1.7;
-
-    margin-bottom:30px;
-}
-
-/* ===== Form ===== */
-
-form{
-
-    background:white;
-
-    padding:38px;
-
-    border-radius:28px;
-
-    border:1px solid #e5e7eb;
-
-    box-shadow:0 10px 30px rgba(0,0,0,0.06);
-}
-
-/* ===== Error ===== */
-
-.error-box{
-
-    background:#fef2f2;
-
-    border:1px solid #fecaca;
-
-    color:#b91c1c;
-
-    padding:14px;
-
-    border-radius:14px;
-
-    margin-bottom:22px;
-
-    font-size:14px;
-}
-
-/* ===== Labels ===== */
-
-label{
-
-    display:block;
-
-    margin-bottom:8px;
-
-    font-size:14px;
-
-    font-weight:600;
-
-    color:#374151;
-}
-
-/* ===== Inputs ===== */
-
-input[type="text"],
-input[type="password"]{
-
-    width:100%;
-
-    padding:14px 16px;
-
-    margin-bottom:22px;
-
-    border-radius:14px;
-
-    border:1px solid #d1d5db;
-
-    font-size:14px;
-
-    background:white;
-
-    transition:0.25s ease;
-
-    font-family:'Inter',sans-serif;
-}
-
-input[type="text"]:focus,
-input[type="password"]:focus{
-
-    outline:none;
-
-    border-color:#2563eb;
-
-    box-shadow:0 0 0 4px rgba(37,99,235,0.1);
-}
-
-/* ===== Login Button ===== */
-
-input[type="submit"]{
-
-    width:100%;
-
-    padding:14px;
-
-    background:#2563eb;
-
-    color:white;
-
-    border:none;
-
-    border-radius:14px;
-
-    font-size:15px;
-
-    font-weight:600;
-
-    cursor:pointer;
-
-    transition:0.25s ease;
-
-    font-family:'Inter',sans-serif;
-
-    box-shadow:0 6px 18px rgba(37,99,235,0.18);
-}
-
-input[type="submit"]:hover{
-
-    background:#1d4ed8;
-
-    transform:translateY(-2px);
-}
-
-/* ===== Logout Button ===== */
-
-.logout{
-
-    text-align:center;
-
-    margin-top:24px;
-}
-
-.logout a{
-
-    display:inline-flex;
-
-    align-items:center;
-    justify-content:center;
-
-    text-decoration:none;
-
-    background:#111827;
-
-    color:white;
-
-    padding:13px 22px;
-
-    border-radius:14px;
-
-    font-size:14px;
-
-    font-weight:600;
-
-    transition:0.25s ease;
-}
-
-.logout a:hover{
-
-    background:#1f2937;
-
-    transform:translateY(-1px);
-}
-
-/* ===== Responsive ===== */
-
-@media(max-width:600px){
-
-    form{
-        padding:28px 22px;
-        border-radius:22px;
-    }
-
-    h2{
-        font-size:28px;
-    }
-
-    .subtitle{
-        font-size:14px;
-    }
-
-}
-
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign in | Seva Bandhu</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --ink:#14213d; --muted:#64748b; --line:#d9e2ec; --blue:#1769e0; --danger:#b42318; }
+        * { box-sizing:border-box; }
+        body { margin:0; min-height:100vh; padding:32px 18px; display:grid; place-items:center; background:#f4f8fc; color:var(--ink); font-family:'DM Sans',sans-serif; }
+        .shell { width:100%; max-width:460px; }
+        .brand { display:flex; justify-content:center; align-items:center; gap:10px; margin-bottom:22px; font-weight:700; letter-spacing:.02em; }
+        .mark { width:34px; height:34px; display:grid; place-items:center; border-radius:10px; background:var(--blue); color:#fff; font-family:Manrope,sans-serif; }
+        .panel { padding:40px 38px 30px; background:#fff; border:1px solid #e1e9f2; border-radius:24px; box-shadow:0 18px 50px rgba(20,33,61,.08); }
+        h1 { margin:0; text-align:center; font:800 31px/1.15 Manrope,sans-serif; letter-spacing:-.03em; }
+        .intro { margin:12px auto 30px; color:var(--muted); text-align:center; line-height:1.55; }
+        .alert { padding:13px 15px; margin-bottom:22px; border:1px solid #f4c7c1; border-radius:12px; color:var(--danger); background:#fff4f2; font-size:14px; line-height:1.45; }
+        .field { margin-bottom:20px; }
+        label { display:block; margin-bottom:8px; font-size:14px; font-weight:700; }
+        input { width:100%; min-height:50px; padding:0 14px; border:1px solid var(--line); border-radius:12px; font:500 15px 'DM Sans',sans-serif; color:var(--ink); }
+        input:focus { outline:0; border-color:var(--blue); box-shadow:0 0 0 4px rgba(23,105,224,.12); }
+        .submit { width:100%; min-height:50px; border:0; border-radius:12px; background:var(--blue); color:white; cursor:pointer; font:700 15px 'DM Sans',sans-serif; box-shadow:0 8px 18px rgba(23,105,224,.22); }
+        .submit:hover { background:#1259bf; }
+        .signup { margin-top:26px; padding-top:22px; border-top:1px solid #e7edf4; text-align:center; color:var(--muted); font-size:14px; }
+        .signup a { display:inline-block; margin-top:9px; color:var(--blue); font-weight:700; text-decoration:none; }
+        .signup a:hover { text-decoration:underline; }
+        @media(max-width:520px) { body { padding:16px 12px; } .panel { padding:30px 20px 25px; } h1 { font-size:27px; } }
+    </style>
 </head>
-
 <body>
-
-<div class="login-container">
-
-    <h2>Customer Login</h2>
-
-    <p class="subtitle">
-        Login to manage your service requests,
-        track technicians and monitor job progress.
-    </p>
-
-    <form method="post">
-
-        {% csrf_token %}
-
-        {% if error %}
-
-        <div class="error-box">
-
-            {{ error }}
-
-        </div>
-
-        {% endif %}
-
-        <label for="username">
-            Username
-        </label>
-
-        <input
-            type="text"
-            id="username"
-            name="username"
-            required>
-
-        <label for="password">
-            Password
-        </label>
-
-        <input
-            type="password"
-            id="password"
-            name="password"
-            required>
-
-        <input type="submit" value="Login">
-
-    </form>
-
-</div>
-
+<main class="shell">
+    <div class="brand"><span class="mark">S</span><span>Seva Bandhu</span></div>
+    <section class="panel">
+        <h1>Welcome back</h1>
+        <p class="intro">Sign in to manage your service requests and stay updated from one place.</p>
+        {% if error %}<div class="alert" role="alert">{{ error }}</div>{% endif %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="field"><label for="username">Username</label><input id="username" name="username" type="text" value="{{ username|default:'' }}" autocomplete="username" required autofocus></div>
+            <div class="field"><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" required></div>
+            <button class="submit" type="submit">Sign in</button>
+        </form>
+        <div class="signup">New to Seva Bandhu?<br><a href="{% url 'customer_signup' %}">Create a customer account</a></div>
+    </section>
+</main>
 </body>
 </html>

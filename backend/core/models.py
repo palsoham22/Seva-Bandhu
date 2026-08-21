@@ -28,6 +28,24 @@ class customer_signup(models.Model):
         return self.username
 
 
+class SignupEmailOTP(models.Model):
+    """Server-side state for a customer email verification attempt."""
+    email = models.EmailField(unique=True)
+    code_hash = models.CharField(max_length=128)
+    expires_at = models.DateTimeField()
+    resend_available_at = models.DateTimeField()
+    attempts = models.PositiveSmallIntegerField(default=0)
+    verified_at = models.DateTimeField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'signup_email_otp'
+
+    def __str__(self):
+        return self.email
+
+
 class Technician_signup(models.Model):
     SERVICE_CATEGORIES = [
         ('AC Service', 'AC Service'),
@@ -191,4 +209,4 @@ class TechnicianNotification(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.technician.username} - {self.title}"      
+        return f"{self.technician.username} - {self.title}"

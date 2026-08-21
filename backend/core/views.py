@@ -1,21 +1,25 @@
 from io import BytesIO
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.core.mail import EmailMessage, send_mail
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.template.loader import get_template
-from django.urls import reverse
+from django.db import IntegrityError, transaction
+from django.utils import timezone
+from django.contrib.auth.hashers import check_password, make_password
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.views.decorators.csrf import csrf_exempt
 from xhtml2pdf import pisa
 import json
 import random
-import uuid
+import secrets
 
 from .models import (
     TechnicianNotification,
@@ -25,6 +29,7 @@ from .models import (
     ServiceDetail,
     ServiceAddress,
     Service,
+    SignupEmailOTP,
 )
 
 def home(request):
@@ -1197,7 +1202,7 @@ def send_verification_email(request):
         # GET DATA
         ####################################################
         data = json.loads(request.body)
-        email = data.get("email")
+        email = (data.get("email") or "").strip().lower()
 
         ####################################################
         # CHECK EMPTY EMAIL
@@ -1207,6 +1212,15 @@ def send_verification_email(request):
                 "status": "failed",
                 "message": "Email is required"
             })
+
+        try:
+            validate_email(email)
+            validate_email(settings.DEFAULT_FROM_EMAIL)
+        except ValidationError:
+            return JsonResponse({
+                "status": "failed",
+                "message": "Email sending is not configured. Please contact support."
+            }, status=503)
 
         ####################################################
         # CHECK EMAIL ALREADY REGISTERED
@@ -1266,8 +1280,226 @@ Team Seva Bandhu
         print("🔥 EMAIL ERROR:", str(mail_error))
         return JsonResponse({
             "status": "failed",
-            "message": str(mail_error)
+            "message": "Unable to send the verification email. Please try again."
         })
+
+
+# Customer signup now uses a persisted OTP rather than an emailed link.  The
+# earlier link handlers above are deliberately no longer routed.
+OTP_EXPIRY_MINUTES = 10
+OTP_RESEND_COOLDOWN_SECONDS = 60
+OTP_MAX_ATTEMPTS = 5
+
+
+def _signup_context(request, **extra):
+    saved_form_data = request.session.get('signup_pending_data', {})
+    context = {
+        'form_data': extra.pop('form_data', saved_form_data),
+        'email_verified': False,
+    }
+    verification_id = request.session.get('signup_email_verification_id')
+    if verification_id:
+        verification = SignupEmailOTP.objects.filter(id=verification_id).first()
+        if verification and verification.verified_at:
+            context['email_verified'] = True
+            context['verified_email'] = verification.email
+    context.update(extra)
+    return context
+
+
+def _account_exists_for_email(email):
+    return (
+        User.objects.filter(email__iexact=email).exists()
+        or customer_signup.objects.filter(email__iexact=email).exists()
+        or Technician_signup.objects.filter(email__iexact=email).exists()
+    )
+
+
+def _username_exists(username):
+    return (
+        User.objects.filter(username__iexact=username).exists()
+        or customer_signup.objects.filter(username__iexact=username).exists()
+        or Technician_signup.objects.filter(username__iexact=username).exists()
+    )
+
+
+def send_signup_otp(request):
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required.'}, status=405)
+
+    try:
+        data = json.loads(request.body)
+    except (TypeError, ValueError, json.JSONDecodeError):
+        return JsonResponse({'status': 'error', 'message': 'Invalid request.'}, status=400)
+
+    username = (data.get('username') or '').strip()
+    email = (data.get('email') or '').strip().lower()
+    if not username:
+        return JsonResponse({'status': 'error', 'message': 'Username is required.'}, status=400)
+    try:
+        validate_email(email)
+    except ValidationError:
+        return JsonResponse({'status': 'error', 'message': 'Enter a valid email address.'}, status=400)
+    if _account_exists_for_email(email):
+        return JsonResponse({'status': 'error', 'message': 'An account with this email already exists.'}, status=409)
+    if _username_exists(username):
+        return JsonResponse({'status': 'error', 'message': 'This username is already taken.'}, status=409)
+
+    from_email = (settings.DEFAULT_FROM_EMAIL or '').strip()
+    try:
+        validate_email(from_email)
+    except ValidationError:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Email sending is not configured. Please contact support.',
+        }, status=503)
+
+    now = timezone.now()
+    verification = SignupEmailOTP.objects.filter(email__iexact=email).first()
+    if verification and verification.verified_at and request.session.get('signup_email_verification_id') == verification.id:
+        return JsonResponse({'status': 'verified', 'message': 'Email is already verified.'})
+    if verification and verification.resend_available_at > now:
+        wait_seconds = max(1, int((verification.resend_available_at - now).total_seconds()))
+        return JsonResponse({
+            'status': 'cooldown',
+            'message': f'Please wait {wait_seconds} seconds before requesting another code.',
+            'retry_after': wait_seconds,
+        }, status=429)
+
+    code = f'{secrets.randbelow(1_000_000):06d}'
+    if verification is None:
+        verification = SignupEmailOTP(email=email)
+    verification.code_hash = make_password(code)
+    verification.expires_at = now + timedelta(minutes=OTP_EXPIRY_MINUTES)
+    verification.resend_available_at = now + timedelta(seconds=OTP_RESEND_COOLDOWN_SECONDS)
+    verification.attempts = 0
+    verification.verified_at = None
+    verification.save()
+
+    try:
+        send_mail(
+            subject='Your Seva Bandhu verification code',
+            message=(
+                f'Your Seva Bandhu email verification code is: {code}\n\n'
+                f'It expires in {OTP_EXPIRY_MINUTES} minutes. Do not share this code with anyone.'
+            ),
+            from_email=from_email,
+            recipient_list=[email],
+            fail_silently=False,
+        )
+    except Exception:
+        # Do not expose mail-provider configuration or errors to the browser.
+        verification.resend_available_at = now
+        verification.save(update_fields=['resend_available_at', 'updated_at'])
+        return JsonResponse({'status': 'error', 'message': 'Unable to send the verification code. Please try again.'}, status=503)
+
+    request.session['signup_email_verification_id'] = verification.id
+    request.session['signup_pending_data'] = {
+        'username': username,
+        'email': email,
+    }
+    request.session.save()
+    return JsonResponse({
+        'status': 'success',
+        'message': 'A verification code has been sent to your email address.',
+        'retry_after': OTP_RESEND_COOLDOWN_SECONDS,
+    })
+
+
+def verify_signup_otp(request):
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required.'}, status=405)
+    try:
+        data = json.loads(request.body)
+    except (TypeError, ValueError, json.JSONDecodeError):
+        return JsonResponse({'status': 'error', 'message': 'Invalid request.'}, status=400)
+
+    code = str(data.get('code') or '').strip()
+    verification_id = request.session.get('signup_email_verification_id')
+    verification = SignupEmailOTP.objects.filter(id=verification_id).first()
+    if not verification:
+        return JsonResponse({'status': 'error', 'message': 'Request a verification code first.'}, status=400)
+    if verification.verified_at:
+        return JsonResponse({'status': 'verified', 'message': 'Email is already verified.'})
+    if timezone.now() >= verification.expires_at:
+        return JsonResponse({'status': 'expired', 'message': 'This verification code has expired. Request a new code.'}, status=400)
+    if verification.attempts >= OTP_MAX_ATTEMPTS:
+        return JsonResponse({'status': 'error', 'message': 'Too many incorrect attempts. Request a new code.'}, status=429)
+    if not (code.isdigit() and len(code) == 6 and check_password(code, verification.code_hash)):
+        verification.attempts += 1
+        verification.save(update_fields=['attempts', 'updated_at'])
+        remaining = OTP_MAX_ATTEMPTS - verification.attempts
+        return JsonResponse({'status': 'error', 'message': f'Incorrect verification code. {remaining} attempt(s) remaining.'}, status=400)
+
+    verification.verified_at = timezone.now()
+    verification.code_hash = ''  # The code cannot be used again after verification.
+    verification.save(update_fields=['verified_at', 'code_hash', 'updated_at'])
+    return JsonResponse({'status': 'verified', 'message': 'Email verified.'})
+
+
+def customer_sign_up(request):
+    if request.method != 'POST':
+        return render(request, 'customer/signup.html', _signup_context(request))
+
+    form_data = {
+        'username': (request.POST.get('username') or '').strip(),
+        'email': (request.POST.get('email') or '').strip().lower(),
+        'contact': (request.POST.get('contact') or '').strip(),
+    }
+    password = request.POST.get('password') or ''
+    if not all([form_data['username'], form_data['email'], form_data['contact'], password]):
+        return render(request, 'customer/signup.html', _signup_context(request, error='Complete all signup fields.', form_data=form_data))
+
+    verification = SignupEmailOTP.objects.filter(id=request.session.get('signup_email_verification_id')).first()
+    if not verification or not verification.verified_at or verification.email != form_data['email']:
+        return render(request, 'customer/signup.html', _signup_context(request, error='Please verify this email before creating your account.', form_data=form_data))
+    if _username_exists(form_data['username']):
+        return render(request, 'customer/signup.html', _signup_context(request, error='This username is already taken.', form_data=form_data))
+    if _account_exists_for_email(form_data['email']):
+        return render(request, 'customer/signup.html', _signup_context(request, error='An account with this email already exists.', form_data=form_data))
+    if customer_signup.objects.filter(contact=form_data['contact']).exists() or Technician_signup.objects.filter(contact=form_data['contact']).exists():
+        return render(request, 'customer/signup.html', _signup_context(request, error='An account with this phone number already exists.', form_data=form_data))
+
+    try:
+        with transaction.atomic():
+            user = User.objects.create_user(username=form_data['username'], email=form_data['email'], password=password)
+            customer_signup.objects.create(
+                user=user, username=form_data['username'], email=form_data['email'],
+                contact=form_data['contact'], password=user.password, email_verified=True, phone_verified=False,
+            )
+    except IntegrityError:
+        return render(request, 'customer/signup.html', _signup_context(request, error='An account with these details already exists.', form_data=form_data))
+
+    request.session.pop('signup_email_verification_id', None)
+    request.session.pop('signup_pending_data', None)
+    request.session['login_username'] = user.username
+    return redirect('customer_login')
+
+
+def customer_login(request):
+    if request.method != 'POST':
+        return render(request, 'customer/login.html', {'username': request.session.pop('login_username', '')})
+
+    username = (request.POST.get('username') or '').strip()
+    password = request.POST.get('password') or ''
+    context = {'username': username}
+    user_record = User.objects.filter(username__iexact=username).first()
+    if user_record is None:
+        context['error'] = 'No account was found with that username.'
+        return render(request, 'customer/login.html', context)
+    user = authenticate(request, username=user_record.username, password=password)
+    if user is None:
+        context['error'] = 'Incorrect password. Please try again.'
+        return render(request, 'customer/login.html', context)
+    customer = customer_signup.objects.filter(user=user).first()
+    if customer is None:
+        context['error'] = 'This is not a customer account. Please use the correct login page.'
+        return render(request, 'customer/login.html', context)
+    if not customer.email_verified:
+        context['error'] = 'This account has not verified its email yet.'
+        return render(request, 'customer/login.html', context)
+    login(request, user)
+    return redirect('service_selection')
 
 
 @csrf_exempt

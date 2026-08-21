@@ -40,8 +40,8 @@ urlpatterns = [
     path('technician/start-tracking/<int:id>/', views.start_tracking, name='start_tracking'),
     path('customer/tracking/<int:id>/', views.customer_tracking, name='customer_tracking'),
     path('customer/google-auth/',views.customer_google_auth,name='customer_google_auth'),
-    path( 'verify-email/<str:token>/', views.verify_email,name='verify_email'),
-   path('send-verification-email/',views.send_verification_email,name='send_verification_email'),
+    path('customer/signup/send-otp/', views.send_signup_otp, name='send_signup_otp'),
+    path('customer/signup/verify-otp/', views.verify_signup_otp, name='verify_signup_otp'),
     path('customer/phone-verify-complete/', views.customer_phone_verify_complete, name='customer_phone_verify_complete'),
 ]
 

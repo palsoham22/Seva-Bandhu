@@ -1,7 +1,6 @@
 # Environment and secrets
 .env
 .env.*
-!.env.example
 
 # Python and Django
 venv/

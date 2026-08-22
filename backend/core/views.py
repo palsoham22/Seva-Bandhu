@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, render, redirect
+from django.urls import reverse
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.template.loader import get_template
@@ -20,6 +21,7 @@ from xhtml2pdf import pisa
 import json
 import random
 import secrets
+import uuid
 
 from .models import (
     TechnicianNotification,
@@ -1548,3 +1550,14 @@ def customer_phone_verify_complete(request):
 
     except Exception as e:
         return JsonResponse({'status': 'failed', 'message': str(e)})
+
+
+from django.contrib.admin.views.decorators import staff_member_required
+
+
+@staff_member_required(login_url='/customer/login/')
+def admin_dashboard(request):
+    return render(
+        request,
+        'admin_dashboard/dashboard.html'
+    )

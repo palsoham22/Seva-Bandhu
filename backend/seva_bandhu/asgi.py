@@ -11,16 +11,16 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'seva_bandhu.settings')
 django.setup()
 from django.contrib.auth.models import User
 
-if not User.objects.filter(username="admin").exists():
-
+admin_username = os.environ.get('DJANGO_ADMIN_USERNAME')
+admin_email = os.environ.get('DJANGO_ADMIN_EMAIL')
+admin_password = os.environ.get('DJANGO_ADMIN_PASSWORD')
+if admin_username and admin_email and admin_password and not User.objects.filter(username=admin_username).exists():
     User.objects.create_superuser(
-
-        username="admin",
-        email="admin@gmail.com",
-        password="123456"
+        username=admin_username,
+        email=admin_email,
+        password=admin_password,
     )
-
-    print("✅ SUPERUSER CREATED")
+    print("SUPERUSER CREATED")
 
 # HTTP app
 django_asgi_app = get_asgi_application()

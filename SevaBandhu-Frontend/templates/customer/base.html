@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .customer-app {
+        display: grid;
+        grid-template-columns: 248px minmax(0, 1fr);
+        gap: 24px;
+        min-height: calc(100vh - 150px);
+        max-width: 1440px;
+        margin: 0 auto;
+    }
+
+    .customer-sidebar {
+        align-self: start;
+        position: sticky;
+        top: 94px;
+        padding: 22px 16px;
+        border-radius: 20px;
+        background: linear-gradient(180deg, #0f172a, #172554);
+        color: #e2e8f0;
+        box-shadow: 0 18px 40px rgba(15, 23, 42, .16);
+    }
+
+    .customer-brand {
+        padding: 6px 12px 20px;
+        border-bottom: 1px solid rgba(226, 232, 240, .16);
+        margin-bottom: 16px;
+    }
+
+    .customer-brand strong {
+        display: block;
+        color: #fff;
+        font-size: 1.15rem;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+    }
+
+    .customer-brand span {
+        display: block;
+        margin-top: 5px;
+        color: #93c5fd;
+        font-size: .78rem;
+    }
+
+    .customer-nav {
+        display: grid;
+        gap: 6px;
+    }
+
+    .customer-nav a {
+        display: flex;
+        align-items: center;
+        min-height: 44px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        color: #cbd5e1;
+        text-decoration: none;
+        font-size: .92rem;
+        font-weight: 700;
+        transition: background .2s ease, color .2s ease, transform .2s ease;
+    }
+
+    .customer-nav a:hover,
+    .customer-nav a.active {
+        background: rgba(96, 165, 250, .2);
+        color: #fff;
+        transform: translateX(2px);
+    }
+
+    .customer-nav a.logout {
+        margin-top: 12px;
+        border-top: 1px solid rgba(226, 232, 240, .16);
+        border-radius: 0 0 10px 10px;
+        padding-top: 18px;
+        color: #fda4af;
+    }
+
+    .customer-content {
+        min-width: 0;
+    }
+
+    @media (max-width: 900px) {
+        .customer-app {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .customer-sidebar {
+            position: static;
+            padding: 16px;
+        }
+
+        .customer-brand {
+            margin-bottom: 12px;
+            padding-bottom: 14px;
+        }
+
+        .customer-nav {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 2px;
+        }
+
+        .customer-nav a {
+            flex: 0 0 auto;
+            white-space: nowrap;
+        }
+
+        .customer-nav a.logout {
+            margin-top: 0;
+            border-top: 0;
+            border-left: 1px solid rgba(226, 232, 240, .16);
+            border-radius: 10px;
+            padding: 10px 12px;
+        }
+    }
+</style>
+
+<div class="customer-app">
+    <aside class="customer-sidebar" aria-label="Customer navigation">
+        <div class="customer-brand">
+            <strong>Seva Bandhu</strong>
+            <span>Customer space</span>
+        </div>
+        <nav class="customer-nav">
+            <a class="{% if request.resolver_match.url_name == 'customer_dashboard' %}active{% endif %}" href="{% url 'customer_dashboard' %}">Dashboard</a>
+            <a class="{% if request.resolver_match.url_name == 'service_selection' or request.resolver_match.url_name == 'customer_create_request' %}active{% endif %}" href="{% url 'service_selection' %}">Book a Service</a>
+            <a class="{% if request.resolver_match.url_name == 'customer_my_requests' %}active{% endif %}" href="{% url 'customer_my_requests' %}">My Requests</a>
+            {% if service_request %}
+                <a class="{% if request.resolver_match.url_name == 'customer_tracking' %}active{% endif %}" href="{% url 'customer_tracking' service_request.id %}">Track Service</a>
+            {% elif active_request %}
+                <a class="{% if request.resolver_match.url_name == 'customer_tracking' %}active{% endif %}" href="{% url 'customer_tracking' active_request.request.id %}">Track Service</a>
+            {% else %}
+                <a class="{% if request.resolver_match.url_name == 'customer_track_request' %}active{% endif %}" href="{% url 'customer_my_requests' %}">Track Service</a>
+            {% endif %}
+            <a class="logout" href="{% url 'customer_logout' %}">Logout</a>
+        </nav>
+    </aside>
+
+    <main class="customer-content">
+        {% block customer_content %}{% endblock %}
+    </main>
+</div>
+{% endblock %}

@@ -653,24 +653,30 @@ footer{
             </a>
         </li>
 
-        <li>
-            <a href="{% url 'customer_signup' %}">
-                Customer
-            </a>
-        </li>
+        {% if request.user.is_authenticated %}
+            {% if request.user.is_staff %}
+                <li>
+                    <a href="{% url 'admin_dashboard' %}">Admin Dashboard</a>
+                </li>
+            {% else %}
+                <li>
+                    <a href="{% url 'customer_dashboard' %}">Customer</a>
+                </li>
+            {% endif %}
+        {% else %}
+            <li>
+                <a href="{% url 'customer_signup' %}">Customer</a>
+            </li>
+        {% endif %}
 
-        <li>
-            <a href="{% url 'technician_signup' %}">
-                Technician
-            </a>
-        </li>
-
-        {% if request.user.is_staff %}
-        <li>
-            <a href="{% url 'admin_dashboard' %}">
-                Admin Dashboard
-            </a>
-        </li>
+        {% if request.user.is_authenticated and request.user.is_staff %}
+            <li>
+                <a href="{% url 'technician_dashboard' %}">Technician</a>
+            </li>
+        {% else %}
+            <li>
+                <a href="{% url 'technician_signup' %}">Technician</a>
+            </li>
         {% endif %}
 
     </ul>

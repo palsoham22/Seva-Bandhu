@@ -1,6 +1,6 @@
-{% extends 'base.html' %}
+{% extends 'customer/base.html' %}
 
-{% block content %}
+{% block customer_content %}
 
 <style>
 
@@ -729,7 +729,7 @@
             <div class="action-buttons">
 
                 <a
-                    href="{% url 'customer_create_request' %}"
+                    href="{% url 'service_selection' %}"
                     class="btn btn-primary">
 
                     + New Request
@@ -1078,7 +1078,7 @@
         </p>
 
         <a
-            href="{% url 'customer_create_request' %}"
+            href="{% url 'service_selection' %}"
             class="btn btn-primary">
 
             Create First Request

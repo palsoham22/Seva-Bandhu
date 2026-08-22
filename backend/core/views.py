@@ -308,64 +308,59 @@ def technician_complete_profile(request):
 def customer_dashboard(request):
     if not request.user.is_authenticated:
         return redirect('customer_login')
-    
-    try:
-        # Get the current customer profile
-        customer = customer_signup.objects.filter(user=request.user).first()
 
-        if not customer:
-           return redirect('customer_login')
-    except customer_signup.DoesNotExist:
-        return render(request, 'customer/create_request', {
-            'error': 'Customer profile not found. Please complete your signup.'
-        })
-    
-    # Get all service requests for this customer
-    service_requests = ServiceRequest.objects.filter(customer_username=customer.username).order_by('-created_at')
-    
-    # Enrich service requests with technician information
+    customer = customer_signup.objects.filter(user=request.user).first()
+    if not customer:
+        return redirect('customer_login')
+
+    service_requests = ServiceRequest.objects.filter(
+        customer_username=customer.username
+    ).select_related('service_detail', 'service_address').order_by('-created_at')
+
     requests_with_technicians = []
     technicians_list = []
-    
+    active_request = None
+
     for service_request in service_requests:
-        request_data = {
-            'request': service_request,
-            'technician': None
-        }
-        
-        # If technician is assigned, fetch technician details
+        technician = None
         if service_request.technician_username:
             try:
                 technician = Technician_signup.objects.get(username=service_request.technician_username)
-                request_data['technician'] = technician
-                
-                # Collect unique technicians
                 if technician not in technicians_list:
                     technicians_list.append(technician)
             except Technician_signup.DoesNotExist:
-                pass
-        
+                technician = None
+
+        request_data = {
+            'request': service_request,
+            'technician': technician,
+        }
+
+        if active_request is None and service_request.status in ['Assigned', 'In Progress']:
+            active_request = request_data
+
         requests_with_technicians.append(request_data)
-    
-    # Calculate statistics
+
+    if active_request is None and requests_with_technicians:
+        active_request = requests_with_technicians[0]
+
     total_requests = service_requests.count()
     pending_requests = service_requests.filter(status='Pending').count()
-    in_progress_requests = service_requests.filter(status='In Progress').count()
+    active_requests = service_requests.filter(status__in=['Assigned', 'In Progress']).count()
     completed_requests = service_requests.filter(status='Completed').count()
-    
-    # Get recent requests (last 5)
-    recent_requests = requests_with_technicians[:5]
-    
+
     context = {
         'customer': customer,
-        'service_requests': recent_requests,
+        'service_requests': requests_with_technicians[:5],
         'technicians': technicians_list,
+        'active_request': active_request,
         'total_requests': total_requests,
         'pending_requests': pending_requests,
-        'in_progress_requests': in_progress_requests,
+        'active_requests': active_requests,
         'completed_requests': completed_requests,
+        'display_name': request.user.get_full_name() or customer.username,
     }
-    
+
     return render(request, 'customer/dashboard_c.html', context)
 
 
@@ -535,7 +530,9 @@ def customer_my_requests(request):
 
 
 def customer_track_request(request):
-    return render(request, 'customer/tracking.html')
+    if not request.user.is_authenticated:
+        return redirect('customer_login')
+    return redirect('customer_my_requests')
 
 
 def customer_phone_verification(request):
@@ -819,6 +816,13 @@ def customer_logout(request):
 from .models import Service
 
 def service_selection(request):
+
+    if not request.user.is_authenticated:
+        return redirect('customer_login')
+
+    customer = customer_signup.objects.filter(user=request.user).first()
+    if not customer:
+        return redirect('customer_login')
 
     services = Service.objects.all()
 

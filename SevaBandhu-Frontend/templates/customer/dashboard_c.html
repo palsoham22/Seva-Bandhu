@@ -1,365 +1,508 @@
-{% extends 'base.html' %}
+{% extends 'customer/base.html' %}
 
-{% block content %}
-
+{% block customer_content %}
 <style>
-/* ===============================
-   Customer Dashboard Styles
-================================ */
-
-.dashboard-wrapper{
-    display:flex;
-    flex-direction:column;
-    gap:20px;
-}
-
-/* header section */
-.dashboard-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-start;
-    gap:20px;
-    flex-wrap:wrap;
-}
-
-.dashboard-header h1{
-    margin-bottom:6px;
-}
-
-.dashboard-header p{
-    color:#64748b;
-    font-size:14px;
-}
-
-/* quick actions */
-.quick-actions{
-    display:flex;
-    gap:12px;
-    flex-wrap:wrap;
-}
-
-/* stat cards */
-.stats-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-    gap:18px;
-}
-
-.stat-card{
-    background:white;
-    padding:20px;
-    border-radius:8px;
-    box-shadow:0 2px 8px rgba(0,0,0,0.08);
-    border-left:5px solid #2563eb;
-}
-
-.stat-card.secondary{
-    border-left-color:#0f766e;
-}
-
-.stat-card.warning{
-    border-left-color:#f59e0b;
-}
-
-.stat-card.success{
-    border-left-color:#16a34a;
-}
-
-.stat-card h4{
-    font-size:14px;
-    color:#64748b;
-    margin-bottom:6px;
-}
-
-.stat-card span{
-    font-size:28px;
-    font-weight:600;
-    color:#1e293b;
-}
-
-/* layout split */
-.dashboard-grid{
-    display:grid;
-    grid-template-columns:2fr 1fr;
-    gap:20px;
-}
-
-@media(max-width:900px){
-    .dashboard-grid{
-        grid-template-columns:1fr;
+    .customer-dashboard-shell {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 24px;
     }
-}
 
-/* table */
-.table-box table{
-    width:100%;
-    border-collapse:collapse;
-    margin-top:10px;
-}
+    .customer-main {
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+    }
 
-.table-box th,
-.table-box td{
-    padding:10px;
-    border-bottom:1px solid #e5e7eb;
-    font-size:14px;
-    text-align:left;
-}
+    .welcome-panel,
+    .stats-card,
+    .content-card,
+    .active-service-card,
+    .profile-card,
+    .mini-card {
+        background: rgba(255, 255, 255, 0.96);
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+    }
 
-.table-box th{
-    background:#f8fafc;
-    color:#334155;
-}
+    .welcome-panel {
+        padding: 26px 28px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        background: linear-gradient(135deg, #eff6ff, #ffffff);
+    }
 
-/* status badges */
-.status-badge{
-    padding:4px 10px;
-    border-radius:12px;
-    font-size:12px;
-    font-weight:600;
-    display:inline-block;
-}
+    .welcome-panel h1 {
+        margin: 0 0 8px;
+        font-size: clamp(1.8rem, 2vw, 2.5rem);
+        color: #0f172a;
+    }
 
-.status-pending{background:#fef3c7;color:#92400e;}
-.status-accepted{background:#e0f2fe;color:#0369a1;}
-.status-in-progress{background:#ede9fe;color:#5b21b6;}
-.status-completed{background:#dcfce7;color:#166534;}
-.status-cancelled{background:#fee2e2;color:#991b1b;}
-.status-assigned{background:#e0f2fe;color:#0369a1;}
-.status-progress{background:#ede9fe;color:#5b21b6;}
-.status-complete{background:#dcfce7;color:#166534;}
+    .welcome-panel p {
+        margin: 0;
+        color: #475569;
+        font-size: 1rem;
+    }
 
-/* profile card */
-.profile-card{
-    display:flex;
-    align-items:center;
-    gap:12px;
-}
+    .welcome-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
 
-.profile-circle{
-    width:48px;
-    height:48px;
-    border-radius:50%;
-    background:#2563eb;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    color:white;
-    font-weight:600;
-    font-size:18px;
-}
+    .btn-dashboard {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 18px;
+        border-radius: 12px;
+        font-weight: 700;
+        text-decoration: none;
+        border: 1px solid transparent;
+        transition: 0.2s ease;
+    }
 
-/* notifications */
-.notification-list{
-    list-style:none;
-    padding-left:0;
-    margin-top:10px;
-}
+    .btn-dashboard.primary {
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        color: #fff;
+        box-shadow: 0 12px 20px rgba(37, 99, 235, 0.25);
+    }
 
-.notification-list li{
-    padding:10px;
-    border-bottom:1px solid #e5e7eb;
-    font-size:14px;
-    color:#475569;
-}
+    .btn-dashboard.secondary {
+        background: #fff;
+        color: #0f172a;
+        border-color: #dbeafe;
+    }
 
-/* help card */
-.help-card ul{
-    margin-left:18px;
-    line-height:1.7;
-    font-size:14px;
-    color:#475569;
-}
+    .btn-dashboard.danger {
+        background: #ef4444;
+        color: #fff;
+    }
+
+    .btn-dashboard:hover {
+        transform: translateY(-1px);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 18px;
+    }
+
+    .stats-card {
+        padding: 22px 18px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stats-card::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 5px;
+        height: 100%;
+        background: #2563eb;
+    }
+
+    .stats-card.secondary::before { background: #0f766e; }
+    .stats-card.warning::before { background: #f59e0b; }
+    .stats-card.success::before { background: #16a34a; }
+
+    .stats-card .label {
+        display: block;
+        font-size: 0.76rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #64748b;
+        margin-bottom: 12px;
+    }
+
+    .stats-card .value {
+        margin: 0;
+        font-size: clamp(1.8rem, 2vw, 2.5rem);
+        font-weight: 800;
+        color: #0f172a;
+    }
+
+    .dashboard-content {
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+        gap: 22px;
+    }
+
+    .content-card {
+        padding: 22px 20px;
+    }
+
+    .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+    }
+
+    .card-header h3 {
+        margin: 0;
+        font-size: 1.2rem;
+        color: #0f172a;
+    }
+
+    .table-wrap {
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        text-align: left;
+        padding: 14px 10px;
+        border-bottom: 1px solid #e2e8f0;
+        vertical-align: middle;
+        font-size: 0.94rem;
+    }
+
+    th {
+        color: #475569;
+        background: #f8fafc;
+        font-size: 0.76rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+    tbody tr:hover {
+        background: #f8fafc;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 0.74rem;
+        font-weight: 700;
+        border: 1px solid transparent;
+    }
+
+    .status-pending { background: #fef3c7; color: #92400e; }
+    .status-assigned { background: #dbeafe; color: #1d4ed8; }
+    .status-in-progress { background: #ede9fe; color: #5b21b6; }
+    .status-completed { background: #dcfce7; color: #166534; }
+    .status-default { background: #f1f5f9; color: #475569; }
+
+    .link-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px 12px;
+        border-radius: 10px;
+        background: #eff6ff;
+        color: #1d4ed8;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.8rem;
+    }
+
+    .link-btn.secondary {
+        background: #f8fafc;
+        color: #0f172a;
+    }
+
+    .empty-state {
+        padding: 30px 18px;
+        text-align: center;
+        color: #64748b;
+    }
+
+    .empty-state h4 {
+        margin: 0 0 8px;
+        color: #0f172a;
+        font-size: 1.3rem;
+    }
+
+    .empty-state p {
+        margin: 0 0 18px;
+    }
+
+    .sidebar-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .profile-card,
+    .mini-card,
+    .active-service-card {
+        padding: 18px 18px 16px;
+    }
+
+    .profile-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 1.15rem;
+    }
+
+    .profile-header h4,
+    .mini-card h4,
+    .active-service-card h4 {
+        margin: 0;
+        color: #0f172a;
+    }
+
+    .meta-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 8px;
+        color: #475569;
+        font-size: 0.92rem;
+    }
+
+    .mini-card ul {
+        margin: 12px 0 0;
+        padding-left: 18px;
+        color: #475569;
+        line-height: 1.7;
+        font-size: 0.9rem;
+    }
+
+    .active-service-card {
+        border: 1px solid #dbeafe;
+        background: linear-gradient(135deg, #eff6ff, #ffffff);
+    }
+
+    .eyebrow {
+        display: inline-block;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #dbeafe;
+        color: #1d4ed8;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+    }
+
+    .active-service-card h3 {
+        margin: 0 0 8px;
+        font-size: 1.5rem;
+        color: #0f172a;
+    }
+
+    .active-service-card p {
+        margin: 4px 0;
+        color: #475569;
+    }
+
+    .active-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+    }
+
+    @media (max-width: 980px) {
+        .customer-dashboard-shell {
+            grid-template-columns: 1fr;
+        }
+
+        .customer-sidebar {
+            padding: 18px 14px;
+        }
+
+        .dashboard-content {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .welcome-panel {
+            padding: 20px 16px;
+        }
+
+        .btn-dashboard {
+            width: 100%;
+        }
+
+        .welcome-actions {
+            width: 100%;
+        }
+
+        th, td {
+            padding: 12px 8px;
+            font-size: 0.82rem;
+        }
+    }
 </style>
 
+    <div class="customer-dashboard-shell">
+        <section class="welcome-panel">
+            <div>
+                <h1>Welcome back, {{ display_name }} 👋</h1>
+                <p>Manage your services, requests and appointments from one place.</p>
+            </div>
 
-<div class="dashboard-wrapper">
+            <div class="welcome-actions">
+                <a class="btn-dashboard primary" href="{% url 'service_selection' %}">+ Book a Service</a>
+                <a class="btn-dashboard secondary" href="{% url 'customer_my_requests' %}">My Requests</a>
+            </div>
+        </section>
 
-    <!-- Header -->
-    <div class="card dashboard-header">
+        <section class="stats-grid">
+            <div class="stats-card">
+                <span class="label">Total Requests</span>
+                <p class="value">{{ total_requests }}</p>
+            </div>
+            <div class="stats-card secondary">
+                <span class="label">Active Requests</span>
+                <p class="value">{{ active_requests }}</p>
+            </div>
+            <div class="stats-card warning">
+                <span class="label">Pending</span>
+                <p class="value">{{ pending_requests }}</p>
+            </div>
+            <div class="stats-card success">
+                <span class="label">Completed</span>
+                <p class="value">{{ completed_requests }}</p>
+            </div>
+        </section>
 
-        <div>
-            <h1>Customer Dashboard</h1>
-            <p>Manage your service requests and track technician activities.</p>
-        </div>
-
-        <div class="quick-actions">
-            <a href="{% url 'customer_create_request' %}" class="btn">New Request</a>
-            <a href="{% url 'customer_logout' %}" class="btn" style="background: #ef4444;">Logout</a>
-        </div>
-
-    </div>
-
-
-    <!-- Stats -->
-    <div class="stats-grid">
-
-        <div class="stat-card">
-            <h4>Total Requests</h4>
-            <span>{{ total_requests }}</span>
-        </div>
-
-        <div class="stat-card secondary">
-            <h4>Pending Requests</h4>
-            <span>{{ pending_requests }}</span>
-        </div>
-
-        <div class="stat-card warning">
-            <h4>In Progress</h4>
-            <span>{{ in_progress_requests }}</span>
-        </div>
-
-        <div class="stat-card success">
-            <h4>Completed</h4>
-            <span>{{ completed_requests }}</span>
-        </div>
-
-    </div>
-
-
-    <!-- Main Grid -->
-    <div class="dashboard-grid">
-
-        <!-- Left: recent requests -->
-        <div class="card table-box">
-
-            <h3>Recent Service Requests</h3>
-
-            {% if service_requests %}
-            <table>
-                <tr>
-                    <th>Request ID</th>
-                    <th>Service Type</th>
-                    <th>Technician</th>
-                    <th>Status</th>
-                    <th>Date</th>
-                    <th>Action</th>
-                </tr>
-
-                {% for item in service_requests %}
-                <tr>
-                    <td>REQ-{{ item.request.id }}</td>
-                    <td>{{ item.request.service_category }}</td>
-                    <td>
-                        {% if item.technician %}
-                        {{ item.technician.username }}
-                        {% else %}
-                        <span style="color: #999;">Not Assigned</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        <span class="status-badge status-{{ item.request.status|lower|slugify }}">
-                            {{ item.request.status }}
-                        </span>
-                    </td>
-                    <td>{{ item.request.preferred_service_date|date:"d M Y" }}</td>
-                    <td>
-                        <a href="{% url 'customer_track_request' %}" class="btn">Track</a>
-                    </td>
-                </tr>
-                {% endfor %}
-
-            </table>
-            {% else %}
-            <p style="color: #64748b; padding: 20px; text-align: center;">
-                No service requests yet. <a href="{% url 'customer_create_request' %}">Create your first request.</a>
-            </p>
-            {% endif %}
-
-        </div>
-
-
-        <!-- Right column -->
-        <div style="display:flex; flex-direction:column; gap:20px;">
-
-            <!-- profile -->
-            <div class="card">
-
-                <div class="profile-card">
-                    <div class="profile-circle">{{ customer.username|upper|first }}</div>
-                    <div>
-                        <strong>{{ customer.username }}</strong><br>
-                        <span style="font-size:13px;color:#64748b;">Customer Account</span>
-                    </div>
+        <section class="dashboard-content">
+            <div class="content-card">
+                <div class="card-header">
+                    <h3>Recent Requests</h3>
+                    <a class="link-btn secondary" href="{% url 'customer_my_requests' %}">View all</a>
                 </div>
 
-                <hr style="margin:15px 0;">
-
-                <p style="font-size:14px;color:#475569;">
-                    <strong>Email:</strong> {{ customer.email }}<br>
-                    <strong>Contact:</strong> {{ customer.contact }}
-                </p>
-
-            </div>
-
-            <!-- Technician History -->
-            <div class="card">
-                <h3>Technicians Who Worked</h3>
-
-                {% if technicians %}
-                <ul class="notification-list">
-                    {% for technician in technicians %}
-                    <li>
-                        <strong>{{ technician.username }}</strong><br>
-                        <span style="font-size: 12px; color: #64748b;">
-                            Contact: {{ technician.contact }}
-                        </span>
-                    </li>
-                    {% endfor %}
-                </ul>
-                {% else %}
-                <p style="font-size:14px;color:#64748b;padding:10px;text-align:center;">
-                    No technicians assigned yet.
-                </p>
-                {% endif %}
-            </div>
-
-            <!-- notifications -->
-            <div class="card">
-
-                <h3>Recent Notifications</h3>
-
                 {% if service_requests %}
-                <ul class="notification-list">
-                    {% for item in service_requests %}
-                    <li>
-                        {% if item.request.status == 'Pending' %}
-                        Your {{ item.request.service_category }} request (REQ-{{ item.request.id }}) is pending.
-                        {% elif item.request.status == 'In Progress' %}
-                        Your {{ item.request.service_category }} request (REQ-{{ item.request.id }}) is in progress.
-                        {% elif item.request.status == 'Completed' %}
-                        Your {{ item.request.service_category }} request (REQ-{{ item.request.id }}) has been completed successfully.
-                        {% else %}
-                        {{ item.request.service_category }} request (REQ-{{ item.request.id }}) - {{ item.request.status }}
-                        {% endif %}
-                    </li>
-                    {% endfor %}
-                </ul>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Service</th>
+                                    <th>Technician</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in service_requests %}
+                                <tr>
+                                    <td>{{ item.request.service_detail.service_category }}</td>
+                                    <td>
+                                        {% if item.technician %}
+                                            {{ item.technician.username }}
+                                        {% else %}
+                                            <span style="color:#64748b;">Awaiting assignment</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if item.request.status == 'Pending' %}
+                                            <span class="status-badge status-pending">Pending</span>
+                                        {% elif item.request.status == 'Assigned' %}
+                                            <span class="status-badge status-assigned">Assigned</span>
+                                        {% elif item.request.status == 'In Progress' %}
+                                            <span class="status-badge status-in-progress">In Progress</span>
+                                        {% elif item.request.status == 'Completed' %}
+                                            <span class="status-badge status-completed">Completed</span>
+                                        {% else %}
+                                            <span class="status-badge status-default">{{ item.request.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ item.request.created_at|date:'M d, Y' }}</td>
+                                    <td>
+                                        <a class="link-btn" href="{% url 'customer_tracking' item.request.id %}">View Request</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 {% else %}
-                <p style="font-size:14px;color:#64748b;padding:10px;text-align:center;">
-                    No notifications yet. Create your first service request!
-                </p>
+                    <div class="empty-state">
+                        <h4>No service requests yet</h4>
+                        <p>Book a service to get started.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="sidebar-stack">
+                {% if active_request %}
+                    <div class="active-service-card">
+                        <span class="eyebrow">Active Service</span>
+                        <h3>{{ active_request.request.service_detail.service_category }}</h3>
+                        <p><strong>Technician:</strong>
+                            {% if active_request.technician %}
+                                {{ active_request.technician.username }}
+                            {% else %}
+                                Awaiting assignment
+                            {% endif %}
+                        </p>
+                        <p><strong>Status:</strong>
+                            {% if active_request.request.status == 'Pending' %}Pending{% elif active_request.request.status == 'Assigned' %}Assigned{% elif active_request.request.status == 'In Progress' %}In Progress{% else %}{{ active_request.request.status }}{% endif %}
+                        </p>
+                        <div class="active-actions">
+                            <a class="link-btn" href="{% url 'customer_tracking' active_request.request.id %}">Track Technician</a>
+                            <a class="link-btn secondary" href="{% url 'customer_tracking' active_request.request.id %}">View Request</a>
+                        </div>
+                    </div>
                 {% endif %}
 
+                <div class="profile-card">
+                    <div class="profile-header">
+                        <div class="avatar">{{ customer.username|upper|first }}</div>
+                        <div>
+                            <h4>{{ customer.username }}</h4>
+                            <span style="color:#64748b; font-size:0.78rem;">Customer profile</span>
+                        </div>
+                    </div>
+
+                    <ul class="meta-list">
+                        <li><strong>Email:</strong> {{ customer.email }}</li>
+                        <li><strong>Phone:</strong> {{ customer.contact }}</li>
+                    </ul>
+                </div>
+
+                <div class="mini-card">
+                    <h4>Technician History</h4>
+                    {% if technicians %}
+                        <ul>
+                            {% for technician in technicians %}
+                                <li>{{ technician.username }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p style="margin: 12px 0 0; color: #64748b;">No technician assigned yet.</p>
+                    {% endif %}
+                </div>
             </div>
-
-            <!-- help -->
-            <div class="card help-card">
-
-                <h3>Need Help?</h3>
-
-                <ul>
-                    <li>Create a new service request using the New Request button.</li>
-                    <li>Track real-time job status from the request list.</li>
-                    <li>Contact the assigned technician if required.</li>
-                    <li>For urgent services, mark priority as High or Emergency.</li>
-                </ul>
-
-            </div>
-
-        </div>
-
+        </section>
     </div>
-
-</div>
-
 {% endblock %}

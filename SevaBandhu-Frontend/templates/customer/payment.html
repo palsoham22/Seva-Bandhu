@@ -1,6 +1,6 @@
-{% extends 'base.html' %}
+{% extends 'customer/base.html' %}
 
-{% block content %}
+{% block customer_content %}
 
 <style>
 .payment-page {
@@ -74,7 +74,7 @@
 <div class="payment-page">
     <div class="payment-header">
         <h1>Payment for Service Request #{{ service_request.id }}</h1>
-        <p>Review the service details below and click Pay Now to complete the payment.</p>
+        <p>Review the service details below and complete your secure payment.</p>
     </div>
 
     <div class="payment-info">
@@ -92,7 +92,11 @@
     <form method="post">
         {% csrf_token %}
         <div class="payment-actions">
-            <button type="submit" class="btn-pay">Pay Now</button>
+            {% if service_request.payment_status == 'paid' %}
+                <a href="{% url 'invoice_pdf' service_request.id %}" class="btn-pay">Download Invoice</a>
+            {% elif service_request.payment_method == 'online' %}
+                <button type="submit" class="btn-pay">Pay Now</button>
+            {% endif %}
             <a href="{% url 'customer_my_requests' %}" class="btn-secondary">Back to Requests</a>
         </div>
     </form>

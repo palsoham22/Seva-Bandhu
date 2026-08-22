@@ -12,6 +12,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.template.loader import get_template
 from django.db import IntegrityError, transaction
+from django.db.models import Q
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.utils import timezone
 from django.contrib.auth.hashers import check_password, make_password
 from asgiref.sync import async_to_sync
@@ -1555,9 +1557,299 @@ def customer_phone_verify_complete(request):
 from django.contrib.admin.views.decorators import staff_member_required
 
 
-@staff_member_required(login_url='/customer/login/')
+def _paginate_items(request, queryset, per_page=12):
+    paginator = Paginator(queryset, per_page)
+    page_number = request.GET.get('page')
+    try:
+        page_obj = paginator.get_page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.get_page(1)
+    except EmptyPage:
+        page_obj = paginator.get_page(paginator.num_pages)
+    return page_obj
+
+
+@staff_member_required(login_url='/admin/login/')
 def admin_dashboard(request):
-    return render(
-        request,
-        'admin_dashboard/dashboard.html'
+    customers = customer_signup.objects.select_related('user').order_by('-id')
+    technicians = Technician_signup.objects.select_related('user').order_by('-id')
+    services = Service.objects.order_by('-id')
+    service_requests = ServiceRequest.objects.select_related('service_detail', 'service_address').order_by('-created_at')
+
+    status_counts = {}
+    for status_value, _ in ServiceRequest.STATUS_CHOICES:
+        status_counts[status_value] = service_requests.filter(status=status_value).count()
+
+    context = {
+        'total_customers': customers.count(),
+        'total_technicians': technicians.count(),
+        'total_services': services.count(),
+        'total_service_requests': service_requests.count(),
+        'status_counts': status_counts,
+        'pending_requests': status_counts.get('Pending', 0),
+        'accepted_requests': status_counts.get('Assigned', 0),
+        'in_progress_requests': status_counts.get('In Progress', 0),
+        'completed_requests': status_counts.get('Completed', 0),
+        'recent_customers': customers[:5],
+        'recent_technicians': technicians[:5],
+        'recent_requests': service_requests[:5],
+    }
+    return render(request, 'admin_dashboard/dashboard.html', context)
+
+
+@staff_member_required(login_url='/admin/login/')
+def admin_customers(request):
+    queryset = customer_signup.objects.select_related('user').order_by('-id')
+    query = request.GET.get('q', '').strip()
+    if query:
+        queryset = queryset.filter(
+            Q(username__icontains=query) |
+            Q(email__icontains=query) |
+            Q(contact__icontains=query) |
+            Q(user__username__icontains=query) |
+            Q(user__email__icontains=query)
+        )
+
+    page_obj = _paginate_items(request, queryset, per_page=12)
+    context = {
+        'customers': page_obj,
+        'query': query,
+        'title': 'Customers',
+    }
+    return render(request, 'admin_dashboard/customers.html', context)
+
+
+@staff_member_required(login_url='/admin/login/')
+def admin_customer_detail(request, customer_id):
+    customer = get_object_or_404(customer_signup.objects.select_related('user'), id=customer_id)
+
+    if request.method == 'POST':
+        contact = request.POST.get('contact', '').strip()
+        email_verified = request.POST.get('email_verified') == 'on'
+        phone_verified = request.POST.get('phone_verified') == 'on'
+
+        if contact:
+            customer.contact = contact
+        customer.email_verified = email_verified
+        customer.phone_verified = phone_verified
+        customer.save()
+        return redirect('admin_customer_detail', customer_id=customer.id)
+
+    context = {'customer': customer}
+    return render(request, 'admin_dashboard/customer_detail.html', context)
+
+
+@staff_member_required(login_url='/admin/login/')
+def admin_technicians(request):
+    queryset = Technician_signup.objects.select_related('user').order_by('-id')
+    query = request.GET.get('q', '').strip()
+    if query:
+        queryset = queryset.filter(
+            Q(username__icontains=query) |
+            Q(email__icontains=query) |
+            Q(contact__icontains=query) |
+            Q(service_category__icontains=query) |
+            Q(user__username__icontains=query) |
+            Q(user__email__icontains=query)
+        )
+
+    page_obj = _paginate_items(request, queryset, per_page=12)
+    context = {
+        'technicians': page_obj,
+        'query': query,
+        'title': 'Technicians',
+    }
+    return render(request, 'admin_dashboard/technicians.html', context)
+
+
+@staff_member_required(login_url='/admin/login/')
+def admin_technician_detail(request, technician_id):
+    technician = get_object_or_404(Technician_signup.objects.select_related('user'), id=technician_id)
+
+    if request.method == 'POST':
+        contact = request.POST.get('contact', '').strip()
+        is_available = request.POST.get('is_available') == 'on'
+        profile_completed = request.POST.get('profile_completed') == 'on'
+        service_category = request.POST.get('service_category', '').strip()
+        years_of_experience = request.POST.get('years_of_experience', '')
+        working_locations = request.POST.get('working_locations', '').strip()
+
+        if contact:
+            technician.contact = contact
+        technician.is_available = is_available
+        technician.profile_completed = profile_completed
+        if service_category:
+            technician.service_category = service_category
+        if years_of_experience:
+            technician.years_of_experience = int(years_of_experience)
+        technician.working_locations = working_locations
+        technician.save()
+        return redirect('admin_technician_detail', technician_id=technician.id)
+
+    context = {'technician': technician}
+    return render(request, 'admin_dashboard/technician_detail.html', context)
+
+
+@staff_member_required(login_url='/admin/login/')
+def admin_services(request):
+    queryset = Service.objects.order_by('-id')
+    query = request.GET.get('q', '').strip()
+    if query:
+        queryset = queryset.filter(name__icontains=query)
+
+    page_obj = _paginate_items(request, queryset, per_page=12)
+    context = {
+        'services': page_obj,
+        'query': query,
+        'title': 'Services',
+    }
+    return render(request, 'admin_dashboard/services.html', context)
+
+
+@staff_member_required(login_url='/admin/login/')
+def admin_service_form(request, service_id=None):
+    service = None
+    if service_id:
+        service = get_object_or_404(Service, id=service_id)
+
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        price = request.POST.get('price', '0').strip()
+        is_enabled = request.POST.get('is_enabled') == 'on'
+        image = request.FILES.get('image')
+
+        if not name:
+            return render(request, 'admin_dashboard/service_form.html', {'service': service, 'error': 'Service name is required.'})
+
+        if service is None:
+            service = Service(name=name, price=price or 0, is_enabled=is_enabled)
+        else:
+            service.name = name
+            service.price = int(price or 0)
+            service.is_enabled = is_enabled
+
+        if image:
+            service.image = image
+        service.save()
+        return redirect('admin_services')
+
+    return render(request, 'admin_dashboard/service_form.html', {'service': service})
+
+
+@staff_member_required(login_url='/admin/login/')
+def admin_requests(request):
+    queryset = ServiceRequest.objects.select_related('service_detail', 'service_address').order_by('-created_at')
+    query = request.GET.get('q', '').strip()
+    if query:
+        queryset = queryset.filter(
+            Q(customer_username__icontains=query) |
+            Q(technician_username__icontains=query) |
+            Q(status__icontains=query) |
+            Q(service_detail__service_category__icontains=query) |
+            Q(service_address__city__icontains=query)
+        )
+
+    page_obj = _paginate_items(request, queryset, per_page=12)
+    context = {
+        'requests': page_obj,
+        'query': query,
+        'title': 'Service Requests',
+    }
+    return render(request, 'admin_dashboard/requests.html', context)
+
+
+@staff_member_required(login_url='/admin/login/')
+def admin_request_detail(request, request_id):
+    service_request = get_object_or_404(
+        ServiceRequest.objects.select_related('service_detail', 'service_address'),
+        id=request_id,
     )
+
+    if request.method == 'POST':
+        status = request.POST.get('status')
+        technician_username = request.POST.get('technician_username', '').strip()
+        if status in dict(ServiceRequest.STATUS_CHOICES):
+            service_request.status = status
+        if technician_username:
+            service_request.technician_username = technician_username
+        service_request.save()
+        return redirect('admin_request_detail', request_id=service_request.id)
+
+    context = {'service_request': service_request}
+    return render(request, 'admin_dashboard/request_detail.html', context)
+
+
+@staff_member_required(login_url='/admin/login/')
+def admin_addresses(request):
+    queryset = ServiceAddress.objects.order_by('-created_at')
+    query = request.GET.get('q', '').strip()
+    if query:
+        queryset = queryset.filter(
+            Q(house_flat_no__icontains=query) |
+            Q(street_area__icontains=query) |
+            Q(city__icontains=query) |
+            Q(pincode__icontains=query) |
+            Q(additional_landmark__icontains=query)
+        )
+
+    page_obj = _paginate_items(request, queryset, per_page=12)
+    context = {
+        'addresses': page_obj,
+        'query': query,
+        'title': 'Service Addresses',
+    }
+    return render(request, 'admin_dashboard/addresses.html', context)
+
+
+@staff_member_required(login_url='/admin/login/')
+def admin_details(request):
+    queryset = ServiceDetail.objects.order_by('-created_at')
+    query = request.GET.get('q', '').strip()
+    if query:
+        queryset = queryset.filter(
+            Q(service_category__icontains=query) |
+            Q(priority__icontains=query) |
+            Q(problem_description__icontains=query) |
+            Q(contact_number__icontains=query)
+        )
+
+    page_obj = _paginate_items(request, queryset, per_page=12)
+    context = {
+        'details': page_obj,
+        'query': query,
+        'title': 'Service Details',
+    }
+    return render(request, 'admin_dashboard/details.html', context)
+
+
+@staff_member_required(login_url='/admin/login/')
+def admin_notifications(request):
+    queryset = TechnicianNotification.objects.select_related('technician', 'service_request').order_by('-created_at')
+    query = request.GET.get('q', '').strip()
+    if query:
+        queryset = queryset.filter(
+            Q(technician__username__icontains=query) |
+            Q(title__icontains=query) |
+            Q(message__icontains=query)
+        )
+
+    page_obj = _paginate_items(request, queryset, per_page=12)
+    context = {
+        'notifications': page_obj,
+        'query': query,
+        'title': 'Technician Notifications',
+    }
+    return render(request, 'admin_dashboard/notifications.html', context)
+
+
+@staff_member_required(login_url='/admin/login/')
+def admin_delete_notification(request, notification_id):
+    notification = get_object_or_404(TechnicianNotification, id=notification_id)
+    notification.delete()
+    return redirect('admin_notifications')
+
+
+@staff_member_required(login_url='/admin/login/')
+def admin_logout(request):
+    logout(request)
+    return redirect('/admin/login/?next=/admin-dashboard/')

@@ -1,0 +1,65 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Service Requests | Seva Bandhu Admin{% endblock %}
+{% block page_title %}Service Requests{% endblock %}
+
+{% block content %}
+<div class="container-box">
+    <div class="toolbar">
+        <h3>Request Management</h3>
+        <form class="search-form" method="get">
+            <input type="text" name="q" value="{{ query }}" placeholder="Search requests...">
+            <button type="submit" class="btn primary">Search</button>
+        </form>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Customer</th>
+                    <th>Technician</th>
+                    <th>Service</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for request in requests %}
+                <tr>
+                    <td>REQ-{{ request.id }}</td>
+                    <td>{{ request.customer_username }}</td>
+                    <td>{{ request.technician_username|default:'Unassigned' }}</td>
+                    <td>{{ request.service_detail.service_category }}</td>
+                    <td>
+                        <span class="badge {% if request.status == 'Completed' %}success{% elif request.status == 'In Progress' %}warning{% elif request.status == 'Assigned' %}warning{% else %}danger{% endif %}">{{ request.status }}</span>
+                    </td>
+                    <td>{{ request.created_at|date:'M d, Y' }}</td>
+                    <td>
+                        <div class="actions">
+                            <a class="btn small" href="{% url 'admin_request_detail' request.id %}">View</a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="muted">No service requests found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pagination">
+        {% if requests.has_previous %}
+            <a href="?page={{ requests.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">Previous</a>
+        {% endif %}
+        <span class="current">Page {{ requests.number }} of {{ requests.paginator.num_pages }}</span>
+        {% if requests.has_next %}
+            <a href="?page={{ requests.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Next</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

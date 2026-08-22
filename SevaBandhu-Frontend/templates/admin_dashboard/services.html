@@ -1,0 +1,74 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Services | Seva Bandhu Admin{% endblock %}
+{% block page_title %}Services{% endblock %}
+
+{% block content %}
+<div class="container-box">
+    <div class="toolbar">
+        <h3>Service Catalog</h3>
+        <div class="actions">
+            <a class="btn primary" href="{% url 'admin_service_add' %}">+ Add Service</a>
+        </div>
+        <form class="search-form" method="get">
+            <input type="text" name="q" value="{{ query }}" placeholder="Search services...">
+            <button type="submit" class="btn primary">Search</button>
+        </form>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Image</th>
+                    <th>Price</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for service in services %}
+                <tr>
+                    <td>{{ service.name }}</td>
+                    <td>
+                        {% if service.image %}
+                            <img src="{{ service.image.url }}" alt="{{ service.name }}" style="max-width: 72px; max-height: 72px; object-fit: cover; border-radius: 8px;">
+                        {% else %}
+                            <span class="muted">No image</span>
+                        {% endif %}
+                    </td>
+                    <td>₹{{ service.price }}</td>
+                    <td>
+                        {% if service.is_enabled %}
+                            <span class="badge success">Enabled</span>
+                        {% else %}
+                            <span class="badge danger">Disabled</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="actions">
+                            <a class="btn small" href="{% url 'admin_service_edit' service.id %}">Edit</a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="muted">No services found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pagination">
+        {% if services.has_previous %}
+            <a href="?page={{ services.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">Previous</a>
+        {% endif %}
+        <span class="current">Page {{ services.number }} of {{ services.paginator.num_pages }}</span>
+        {% if services.has_next %}
+            <a href="?page={{ services.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Next</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

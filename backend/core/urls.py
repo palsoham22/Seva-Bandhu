@@ -22,8 +22,7 @@ urlpatterns = [
     path('technician/logout/', views.technician_logout, name='technician_logout'),
     path('technician/complete_profile/', views.technician_complete_profile, name='technician_complete_profile'),
     path('technician/dismiss-notification/<int:id>/',views.dismiss_notification,name='dismiss_notification'),
-    path('technician/navigation/<int:id>/',views.technician_navigation,name='technician_navigation'
-),
+    path('technician/navigation/<int:id>/',views.technician_navigation,name='technician_navigation'),
 
     # Customer
     path('customer/dashboard/', views.customer_dashboard, name='customer_dashboard'),
@@ -43,6 +42,23 @@ urlpatterns = [
     path('customer/signup/send-otp/', views.send_signup_otp, name='send_signup_otp'),
     path('customer/signup/verify-otp/', views.verify_signup_otp, name='verify_signup_otp'),
     path('customer/phone-verify-complete/', views.customer_phone_verify_complete, name='customer_phone_verify_complete'),
+
+    # Custom admin dashboard
+    path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('admin-dashboard/customers/', views.admin_customers, name='admin_customers'),
+    path('admin-dashboard/customers/<int:customer_id>/', views.admin_customer_detail, name='admin_customer_detail'),
+    path('admin-dashboard/technicians/', views.admin_technicians, name='admin_technicians'),
+    path('admin-dashboard/technicians/<int:technician_id>/', views.admin_technician_detail, name='admin_technician_detail'),
+    path('admin-dashboard/services/', views.admin_services, name='admin_services'),
+    path('admin-dashboard/services/add/', views.admin_service_form, name='admin_service_add'),
+    path('admin-dashboard/services/<int:service_id>/', views.admin_service_form, name='admin_service_edit'),
+    path('admin-dashboard/requests/', views.admin_requests, name='admin_requests'),
+    path('admin-dashboard/requests/<int:request_id>/', views.admin_request_detail, name='admin_request_detail'),
+    path('admin-dashboard/addresses/', views.admin_addresses, name='admin_addresses'),
+    path('admin-dashboard/details/', views.admin_details, name='admin_details'),
+    path('admin-dashboard/notifications/', views.admin_notifications, name='admin_notifications'),
+    path('admin-dashboard/notifications/<int:notification_id>/delete/', views.admin_delete_notification, name='admin_delete_notification'),
+    path('admin-dashboard/logout/', views.admin_logout, name='admin_logout'),
 ]
 
 # 🔥 VERY IMPORTANT — SERVE IMAGES

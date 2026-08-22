@@ -1,16 +1,153 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Seva Bandhu Admin Dashboard</title>
-</head>
+{% extends 'admin_dashboard/base.html' %}
 
-<body>
+{% block title %}Dashboard | Seva Bandhu Admin{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
 
-    <h1>Seva Bandhu Admin Dashboard</h1>
+{% block content %}
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="label">Total Customers</div>
+        <p class="value">{{ total_customers }}</p>
+    </div>
+    <div class="stat-card">
+        <div class="label">Total Technicians</div>
+        <p class="value">{{ total_technicians }}</p>
+    </div>
+    <div class="stat-card">
+        <div class="label">Total Services</div>
+        <p class="value">{{ total_services }}</p>
+    </div>
+    <div class="stat-card">
+        <div class="label">Service Requests</div>
+        <p class="value">{{ total_service_requests }}</p>
+    </div>
+    <div class="stat-card">
+        <div class="label">Pending</div>
+        <p class="value">{{ pending_requests }}</p>
+    </div>
+    <div class="stat-card">
+        <div class="label">Assigned</div>
+        <p class="value">{{ accepted_requests }}</p>
+    </div>
+    <div class="stat-card">
+        <div class="label">In Progress</div>
+        <p class="value">{{ in_progress_requests }}</p>
+    </div>
+    <div class="stat-card">
+        <div class="label">Completed</div>
+        <p class="value">{{ completed_requests }}</p>
+    </div>
+</div>
 
-    <p>Welcome, {{ request.user.username }}</p>
+<div class="container-box" style="margin-bottom: 24px;">
+    <div class="toolbar">
+        <h3>Recent Customers</h3>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Contact</th>
+                    <th>Email Verified</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for customer in recent_customers %}
+                <tr>
+                    <td>{{ customer.username }}</td>
+                    <td>{{ customer.email }}</td>
+                    <td>{{ customer.contact }}</td>
+                    <td>
+                        {% if customer.email_verified %}
+                            <span class="badge success">Verified</span>
+                        {% else %}
+                            <span class="badge warning">Pending</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="muted">No customers yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 
-    <h2>Admin panel is working ✅</h2>
+<div class="container-box" style="margin-bottom: 24px;">
+    <div class="toolbar">
+        <h3>Recent Technicians</h3>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Contact</th>
+                    <th>Available</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for technician in recent_technicians %}
+                <tr>
+                    <td>{{ technician.username }}</td>
+                    <td>{{ technician.email }}</td>
+                    <td>{{ technician.contact }}</td>
+                    <td>
+                        {% if technician.is_available %}
+                            <span class="badge success">Available</span>
+                        {% else %}
+                            <span class="badge danger">Busy</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="muted">No technicians found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 
-</body>
-</html>
+<div class="container-box">
+    <div class="toolbar">
+        <h3>Recent Service Requests</h3>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Customer</th>
+                    <th>Technician</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for request in recent_requests %}
+                <tr>
+                    <td>REQ-{{ request.id }}</td>
+                    <td>{{ request.customer_username }}</td>
+                    <td>{{ request.technician_username|default:'Unassigned' }}</td>
+                    <td>
+                        <span class="badge {% if request.status == 'Completed' %}success{% elif request.status == 'In Progress' %}warning{% elif request.status == 'Assigned' %}warning{% else %}danger{% endif %}">{{ request.status }}</span>
+                    </td>
+                    <td>{{ request.created_at|date:'M d, Y' }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="muted">No service requests yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

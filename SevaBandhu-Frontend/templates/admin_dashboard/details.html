@@ -1,0 +1,57 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Service Details | Seva Bandhu Admin{% endblock %}
+{% block page_title %}Service Details{% endblock %}
+
+{% block content %}
+<div class="container-box">
+    <div class="toolbar">
+        <h3>Service Detail Records</h3>
+        <form class="search-form" method="get">
+            <input type="text" name="q" value="{{ query }}" placeholder="Search service details...">
+            <button type="submit" class="btn primary">Search</button>
+        </form>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Category</th>
+                    <th>Priority</th>
+                    <th>Preferred Date</th>
+                    <th>Contact</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detail in details %}
+                <tr>
+                    <td>{{ detail.id }}</td>
+                    <td>{{ detail.service_category }}</td>
+                    <td>{{ detail.priority }}</td>
+                    <td>{{ detail.preferred_service_date }}</td>
+                    <td>{{ detail.contact_number }}</td>
+                    <td>{{ detail.created_at|date:'M d, Y' }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="muted">No service details found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pagination">
+        {% if details.has_previous %}
+            <a href="?page={{ details.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">Previous</a>
+        {% endif %}
+        <span class="current">Page {{ details.number }} of {{ details.paginator.num_pages }}</span>
+        {% if details.has_next %}
+            <a href="?page={{ details.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Next</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

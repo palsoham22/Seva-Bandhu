@@ -665,6 +665,14 @@ footer{
             </a>
         </li>
 
+        {% if request.user.is_staff %}
+        <li>
+            <a href="{% url 'admin_dashboard' %}">
+                Admin Dashboard
+            </a>
+        </li>
+        {% endif %}
+
     </ul>
 
 </nav>

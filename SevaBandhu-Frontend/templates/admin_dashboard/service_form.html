@@ -1,0 +1,46 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}{% if service %}Edit Service{% else %}Add Service{% endif %} | Seva Bandhu Admin{% endblock %}
+{% block page_title %}{% if service %}Edit Service{% else %}Add Service{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container-box">
+    <div class="toolbar">
+        <h3>{% if service %}Edit Service{% else %}Add Service{% endif %}</h3>
+        <a class="btn primary" href="{% url 'admin_services' %}">Back to Services</a>
+    </div>
+
+    {% if error %}
+        <div class="badge danger" style="display: inline-block; margin-bottom: 16px;">{{ error }}</div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-grid">
+            <div class="field">
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name" value="{{ service.name|default:'' }}" required>
+            </div>
+            <div class="field">
+                <label for="price">Price</label>
+                <input type="number" id="price" name="price" min="0" value="{{ service.price|default:0 }}" required>
+            </div>
+            <div class="field">
+                <label for="image">Image</label>
+                <input type="file" id="image" name="image" accept="image/*">
+            </div>
+            <div class="field">
+                <label>Enabled</label>
+                <div class="checkbox-row">
+                    <input type="checkbox" name="is_enabled" {% if service.is_enabled %}checked{% endif %}>
+                    <span>Is enabled</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 22px;">
+            <button type="submit" class="btn primary">Save</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

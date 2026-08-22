@@ -1,0 +1,57 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Service Addresses | Seva Bandhu Admin{% endblock %}
+{% block page_title %}Service Addresses{% endblock %}
+
+{% block content %}
+<div class="container-box">
+    <div class="toolbar">
+        <h3>Service Address Records</h3>
+        <form class="search-form" method="get">
+            <input type="text" name="q" value="{{ query }}" placeholder="Search addresses...">
+            <button type="submit" class="btn primary">Search</button>
+        </form>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>House / Flat</th>
+                    <th>Street / Area</th>
+                    <th>City</th>
+                    <th>Pincode</th>
+                    <th>Landmark</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for address in addresses %}
+                <tr>
+                    <td>{{ address.id }}</td>
+                    <td>{{ address.house_flat_no }}</td>
+                    <td>{{ address.street_area }}</td>
+                    <td>{{ address.city }}</td>
+                    <td>{{ address.pincode }}</td>
+                    <td>{{ address.additional_landmark|default:'-' }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="muted">No service addresses found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pagination">
+        {% if addresses.has_previous %}
+            <a href="?page={{ addresses.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">Previous</a>
+        {% endif %}
+        <span class="current">Page {{ addresses.number }} of {{ addresses.paginator.num_pages }}</span>
+        {% if addresses.has_next %}
+            <a href="?page={{ addresses.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Next</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Request Details | Seva Bandhu Admin{% endblock %}
+{% block page_title %}Request Details{% endblock %}
+
+{% block content %}
+<div class="container-box">
+    <div class="toolbar">
+        <h3>Request #{{ service_request.id }}</h3>
+        <a class="btn primary" href="{% url 'admin_requests' %}">Back to Requests</a>
+    </div>
+
+    <div class="detail-grid">
+        <div class="detail-item">
+            <div class="label">Customer</div>
+            <div class="value">{{ service_request.customer_username }}</div>
+        </div>
+        <div class="detail-item">
+            <div class="label">Technician</div>
+            <div class="value">{{ service_request.technician_username|default:'Unassigned' }}</div>
+        </div>
+        <div class="detail-item">
+            <div class="label">Status</div>
+            <div class="value">{{ service_request.status }}</div>
+        </div>
+        <div class="detail-item">
+            <div class="label">Created</div>
+            <div class="value">{{ service_request.created_at }}</div>
+        </div>
+    </div>
+
+    <form method="post" style="margin-top: 22px;">
+        {% csrf_token %}
+        <div class="form-grid">
+            <div class="field">
+                <label for="status">Status</label>
+                <select id="status" name="status">
+                    {% for value,label in service_request.STATUS_CHOICES %}
+                        <option value="{{ value }}" {% if service_request.status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="field">
+                <label for="technician_username">Technician Username</label>
+                <input type="text" id="technician_username" name="technician_username" value="{{ service_request.technician_username|default:'' }}">
+            </div>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <button type="submit" class="btn primary">Update Request</button>
+        </div>
+    </form>
+
+    <div class="detail-grid" style="margin-top: 28px;">
+        <div class="detail-item">
+            <div class="label">Service Category</div>
+            <div class="value">{{ service_request.service_detail.service_category }}</div>
+        </div>
+        <div class="detail-item">
+            <div class="label">Priority</div>
+            <div class="value">{{ service_request.service_detail.priority }}</div>
+        </div>
+        <div class="detail-item">
+            <div class="label">Preferred Date</div>
+            <div class="value">{{ service_request.service_detail.preferred_service_date }}</div>
+        </div>
+        <div class="detail-item">
+            <div class="label">Preferred Time</div>
+            <div class="value">{{ service_request.service_detail.preferred_time_slot }}</div>
+        </div>
+    </div>
+
+    <div class="detail-item" style="margin-top: 18px;">
+        <div class="label">Problem Description</div>
+        <div class="value">{{ service_request.service_detail.problem_description }}</div>
+    </div>
+</div>
+{% endblock %}

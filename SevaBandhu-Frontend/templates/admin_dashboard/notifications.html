@@ -1,0 +1,67 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Technician Notifications | Seva Bandhu Admin{% endblock %}
+{% block page_title %}Technician Notifications{% endblock %}
+
+{% block content %}
+<div class="container-box">
+    <div class="toolbar">
+        <h3>Notification Records</h3>
+        <form class="search-form" method="get">
+            <input type="text" name="q" value="{{ query }}" placeholder="Search notifications...">
+            <button type="submit" class="btn primary">Search</button>
+        </form>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Technician</th>
+                    <th>Title</th>
+                    <th>Message</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for notification in notifications %}
+                <tr>
+                    <td>{{ notification.technician.username }}</td>
+                    <td>{{ notification.title }}</td>
+                    <td>{{ notification.message|truncatechars:90 }}</td>
+                    <td>
+                        {% if notification.is_read %}
+                            <span class="badge success">Read</span>
+                        {% else %}
+                            <span class="badge warning">Unread</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ notification.created_at|date:'M d, Y' }}</td>
+                    <td>
+                        <div class="actions">
+                            <a class="btn small danger" href="{% url 'admin_delete_notification' notification.id %}" onclick="return confirm('Delete this notification?');">Delete</a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="muted">No technician notifications found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pagination">
+        {% if notifications.has_previous %}
+            <a href="?page={{ notifications.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">Previous</a>
+        {% endif %}
+        <span class="current">Page {{ notifications.number }} of {{ notifications.paginator.num_pages }}</span>
+        {% if notifications.has_next %}
+            <a href="?page={{ notifications.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Next</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Seva Bandhu Admin{% endblock %}</title>
+    <style>
+        :root {
+            --primary: #1d4ed8;
+            --primary-dark: #1e3a8a;
+            --sidebar-bg: #0f172a;
+            --sidebar-text: #e2e8f0;
+            --sidebar-muted: #94a3b8;
+            --card-bg: #ffffff;
+            --page-bg: #f8fafc;
+            --border: #e2e8f0;
+            --success: #16a34a;
+            --warning: #f59e0b;
+            --danger: #dc2626;
+            --text: #0f172a;
+            --muted: #475569;
+            --shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: var(--page-bg);
+            color: var(--text);
+        }
+
+        a { text-decoration: none; color: inherit; }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            padding: 24px 18px;
+            position: sticky;
+            top: 0;
+            min-height: 100vh;
+        }
+
+        .brand {
+            padding: 8px 10px 24px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+            margin-bottom: 18px;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 1.45rem;
+            letter-spacing: 0.04em;
+        }
+
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 12px 14px;
+            border-radius: 10px;
+            color: var(--sidebar-text);
+            transition: 0.2s ease;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: rgba(148, 163, 184, 0.14);
+        }
+
+        .nav-item.logout {
+            margin-top: 22px;
+            border-top: 1px solid rgba(148, 163, 184, 0.18);
+            padding-top: 18px;
+        }
+
+        .content {
+            flex: 1;
+            padding: 28px 32px 36px;
+        }
+
+        .topbar {
+            background: rgba(255,255,255,0.9);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 18px 22px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow);
+        }
+
+        .topbar h2 {
+            margin: 0;
+            font-size: 1.55rem;
+        }
+
+        .topbar .welcome {
+            color: var(--muted);
+            font-size: 0.96rem;
+        }
+
+        .container-box {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            box-shadow: var(--shadow);
+            padding: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #eff6ff, #ffffff);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 18px 18px 16px;
+        }
+
+        .stat-card .label {
+            color: var(--muted);
+            font-size: 0.82rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px 10px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+
+        th {
+            background: #f8fafc;
+            color: var(--muted);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: #e0f2fe;
+            color: #075985;
+        }
+
+        .badge.success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge.warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge.danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 9px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: #fff;
+            color: var(--text);
+            cursor: pointer;
+            font-size: 0.92rem;
+        }
+
+        .btn.primary {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .btn.danger {
+            background: var(--danger);
+            border-color: var(--danger);
+            color: white;
+        }
+
+        .btn.small {
+            padding: 7px 10px;
+            font-size: 0.8rem;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .search-form input,
+        .form-grid input,
+        .form-grid select,
+        .form-grid textarea {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 0.96rem;
+        }
+
+        .search-form input {
+            min-width: 220px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .field label {
+            font-weight: 600;
+            color: var(--muted);
+        }
+
+        .field textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-top: 14px;
+        }
+
+        .detail-item {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+        }
+
+        .detail-item .label {
+            font-size: 0.76rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        .detail-item .value {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .pagination {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 18px;
+        }
+
+        .pagination a,
+        .pagination span {
+            display: inline-block;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: white;
+            color: var(--text);
+        }
+
+        .pagination .current {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        @media (max-width: 900px) {
+            body { flex-direction: column; }
+            .sidebar {
+                width: 100%;
+                min-height: auto;
+                position: static;
+            }
+            .content { padding: 18px; }
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="brand">
+            <h1>SEVA BANDHU</h1>
+        </div>
+        <nav class="nav-menu">
+            <a class="nav-item {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}" href="{% url 'admin_dashboard' %}">Dashboard</a>
+            <a class="nav-item {% if request.resolver_match.url_name == 'admin_customers' %}active{% endif %}" href="{% url 'admin_customers' %}">Customers</a>
+            <a class="nav-item {% if request.resolver_match.url_name == 'admin_technicians' %}active{% endif %}" href="{% url 'admin_technicians' %}">Technicians</a>
+            <a class="nav-item {% if request.resolver_match.url_name == 'admin_services' %}active{% endif %}" href="{% url 'admin_services' %}">Services</a>
+            <a class="nav-item {% if request.resolver_match.url_name == 'admin_requests' %}active{% endif %}" href="{% url 'admin_requests' %}">Service Requests</a>
+            <a class="nav-item {% if request.resolver_match.url_name == 'admin_addresses' %}active{% endif %}" href="{% url 'admin_addresses' %}">Service Addresses</a>
+            <a class="nav-item {% if request.resolver_match.url_name == 'admin_details' %}active{% endif %}" href="{% url 'admin_details' %}">Service Details</a>
+            <a class="nav-item {% if request.resolver_match.url_name == 'admin_notifications' %}active{% endif %}" href="{% url 'admin_notifications' %}">Technician Notifications</a>
+            <a class="nav-item logout" href="{% url 'admin_logout' %}">Logout</a>
+        </nav>
+    </aside>
+
+    <main class="content">
+        <div class="topbar">
+            <h2>{% block page_title %}Seva Bandhu Admin{% endblock %}</h2>
+            <div class="welcome">Welcome, {{ request.user.username }}</div>
+        </div>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

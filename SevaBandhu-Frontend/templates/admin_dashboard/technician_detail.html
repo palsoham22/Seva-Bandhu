@@ -1,0 +1,72 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Technician Details | Seva Bandhu Admin{% endblock %}
+{% block page_title %}Technician Details{% endblock %}
+
+{% block content %}
+<div class="container-box">
+    <div class="toolbar">
+        <h3>{{ technician.username }}</h3>
+        <a class="btn primary" href="{% url 'admin_technicians' %}">Back to Technicians</a>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="detail-grid">
+            <div class="detail-item">
+                <div class="label">Username</div>
+                <div class="value">{{ technician.username }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="label">Email</div>
+                <div class="value">{{ technician.email }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="label">Contact</div>
+                <div class="value">{{ technician.contact }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="label">Status</div>
+                <div class="value">{% if technician.is_available %}Available{% else %}Busy{% endif %}</div>
+            </div>
+        </div>
+
+        <div class="form-grid" style="margin-top: 22px;">
+            <div class="field">
+                <label for="contact">Contact</label>
+                <input type="text" id="contact" name="contact" value="{{ technician.contact }}">
+            </div>
+            <div class="field">
+                <label for="service_category">Service Category</label>
+                <input type="text" id="service_category" name="service_category" value="{{ technician.service_category|default:'' }}">
+            </div>
+            <div class="field">
+                <label for="years_of_experience">Years of Experience</label>
+                <input type="number" id="years_of_experience" name="years_of_experience" value="{{ technician.years_of_experience|default:'' }}">
+            </div>
+            <div class="field">
+                <label for="working_locations">Working Locations</label>
+                <input type="text" id="working_locations" name="working_locations" value="{{ technician.working_locations|default:'' }}">
+            </div>
+            <div class="field">
+                <label>Available</label>
+                <div class="checkbox-row">
+                    <input type="checkbox" name="is_available" {% if technician.is_available %}checked{% endif %}>
+                    <span>Available for jobs</span>
+                </div>
+            </div>
+            <div class="field">
+                <label>Profile Completed</label>
+                <div class="checkbox-row">
+                    <input type="checkbox" name="profile_completed" {% if technician.profile_completed %}checked{% endif %}>
+                    <span>Profile complete</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <button type="submit" class="btn primary">Save Changes</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

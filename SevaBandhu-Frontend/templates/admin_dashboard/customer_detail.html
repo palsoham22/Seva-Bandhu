@@ -1,0 +1,60 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Customer Details | Seva Bandhu Admin{% endblock %}
+{% block page_title %}Customer Details{% endblock %}
+
+{% block content %}
+<div class="container-box">
+    <div class="toolbar">
+        <h3>{{ customer.username }}</h3>
+        <a class="btn primary" href="{% url 'admin_customers' %}">Back to Customers</a>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="detail-grid">
+            <div class="detail-item">
+                <div class="label">Username</div>
+                <div class="value">{{ customer.username }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="label">Email</div>
+                <div class="value">{{ customer.email }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="label">Contact</div>
+                <div class="value">{{ customer.contact }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="label">User ID</div>
+                <div class="value">{{ customer.user.id }}</div>
+            </div>
+        </div>
+
+        <div class="form-grid" style="margin-top: 22px;">
+            <div class="field">
+                <label for="contact">Contact</label>
+                <input type="text" id="contact" name="contact" value="{{ customer.contact }}">
+            </div>
+            <div class="field">
+                <label for="email_verified">Email Verified</label>
+                <div class="checkbox-row">
+                    <input type="checkbox" id="email_verified" name="email_verified" {% if customer.email_verified %}checked{% endif %}>
+                    <span>Verified</span>
+                </div>
+            </div>
+            <div class="field">
+                <label for="phone_verified">Phone Verified</label>
+                <div class="checkbox-row">
+                    <input type="checkbox" id="phone_verified" name="phone_verified" {% if customer.phone_verified %}checked{% endif %}>
+                    <span>Verified</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <button type="submit" class="btn primary">Save Changes</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
